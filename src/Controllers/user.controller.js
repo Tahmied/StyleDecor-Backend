@@ -34,12 +34,12 @@ export const registerUser = asyncHandler(async (req, res) => {
     }
     if (await User.findOne({ email })) {
         throw new ApiError(409, 'User already exists')
-    }   
+    }
 
     const CloudinaryResponse = await uploadOnCloudinary(req.file.path)
     const Image = CloudinaryResponse.url
     await User.create({
-        name, email, password, image:Image
+        name, email, password, image: Image
     })
     res.status(200).json(
         new ApiResponse(200, { message: 'User registered successfully' }, 'User registered successfully')
@@ -119,4 +119,34 @@ export const logoutUser = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(200, { message: 'User logged out' }, 'User logout successfully')
         )
+})
+
+export const loginCheck = asyncHandler(async (req, res) => {
+    const user = req.user;
+    if (!user) {
+        return res.status(200).json(new ApiResponse(200, '', 'user is not logged in'))
+    }
+    const data = {
+        email: user.email,
+        fullName: user.fullName,
+        accessToken: req.token,
+        image: user.image
+    }
+    return res.status(200).json(new ApiResponse(200, data, 'user is logged in'))
+})
+
+export const userDetails = asyncHandler(async (req, res) => {
+    let user = req.user
+    if (!user) {
+        throw new ApiError(400, 'user not found, please login again')
+    }
+    const data = {
+        email: user.email,
+        fullName: user.fullName,
+        accessToken: req.token,
+        image: user.image
+    }
+    return res.status(200).json(
+        new ApiResponse(200, data)
+    )
 })
