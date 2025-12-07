@@ -13,7 +13,7 @@ async function generateAccessAndRefreshToken(userId) {
         const user = await User.findById(userId);
         if (!user) throw new ApiError(404, "User not found");
 
-        const accessToken = user.js.generateAccessToken();
+        const accessToken = user.generateAccessToken();
         const refreshToken = user.generateRefreshToken();
         await User.findByIdAndUpdate(
             userId,
