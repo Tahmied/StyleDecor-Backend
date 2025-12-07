@@ -3,6 +3,7 @@ import { User } from '../Models/user.model.js';
 import { ApiError } from '../Utils/apiError.js';
 import { ApiResponse } from '../Utils/ApiResponse.js';
 import { asyncHandler } from '../Utils/AsyncHandler.js';
+import { uploadOnCloudinary } from '../Utils/Cloudinary.js';
 
 
 dotenv.config({ path: './.env' })
@@ -27,16 +28,18 @@ async function generateAccessAndRefreshToken(userId) {
 }
 
 export const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password, image } = req.body
+    const { name, email, password } = req.body
     if (!name || !email || !password) {
         throw new ApiError(400, 'Name, email and password are required fields')
     }
     if (await User.findOne({ email })) {
         throw new ApiError(409, 'User already exists')
-    }
+    }   
 
+    const CloudinaryResponse = await uploadOnCloudinary(req.file.path)
+    const Image = CloudinaryResponse.url
     await User.create({
-        name, email, password, image
+        name, email, password, image:Image
     })
     res.status(200).json(
         new ApiResponse(200, { message: 'User registered successfully' }, 'User registered successfully')
