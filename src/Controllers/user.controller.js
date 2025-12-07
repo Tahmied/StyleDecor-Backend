@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
-import { User } from '../Models/user.model';
-import { ApiError } from '../Utils/apiError';
-import { ApiResponse } from '../Utils/ApiResponse';
-import { asyncHandler } from '../Utils/AsyncHandler';
+import { User } from '../Models/user.model.js';
+import { ApiError } from '../Utils/apiError.js';
+import { ApiResponse } from '../Utils/ApiResponse.js';
+import { asyncHandler } from '../Utils/AsyncHandler.js';
 
 
 dotenv.config({ path: './.env' })
@@ -12,10 +12,9 @@ async function generateAccessAndRefreshToken(userId) {
         const user = await User.findById(userId);
         if (!user) throw new ApiError(404, "User not found");
 
-        const accessToken = user.generateAccessToken();
+        const accessToken = user.js.generateAccessToken();
         const refreshToken = user.generateRefreshToken();
-
-        const updatedUser = await User.findByIdAndUpdate(
+        await User.findByIdAndUpdate(
             userId,
             { $set: { refreshToken } },
             { new: true, validateBeforeSave: false }
@@ -35,16 +34,13 @@ export const registerUser = asyncHandler(async (req, res) => {
     if (await User.findOne({ email })) {
         throw new ApiError(409, 'User already exists')
     }
-    try {
-        await User.create({
-            name, email, password, image
-        })
-        res.status(200).json(
-            new ApiResponse(200, { message: 'User registered successfully' }, 'User registered successfully')
-        )
-    } catch (error) {
-        throw new ApiError(500, `Unable to register user due to ${error}`)
-    }
+
+    await User.create({
+        name, email, password, image
+    })
+    res.status(200).json(
+        new ApiResponse(200, { message: 'User registered successfully' }, 'User registered successfully')
+    )
 })
 
 export const loginUser = asyncHandler(async (req, res) => {
