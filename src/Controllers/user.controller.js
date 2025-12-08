@@ -48,6 +48,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 
 export const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body
+    console.log(email, password);
 
     if (!email || !password) {
         throw new ApiError(400, 'Email and password are required')
@@ -148,5 +149,25 @@ export const userDetails = asyncHandler(async (req, res) => {
     }
     return res.status(200).json(
         new ApiResponse(200, data)
+    )
+})
+
+export const googleAuth = asyncHandler(async (req, res) => {
+    const { email, name, image } = req.body
+    let user = await User.findOne({ email })
+    if (!user) {
+        user = await User.create({
+            name: name,
+            email: email,
+            image: image
+        })
+    }
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
+    return res.status(200).json(
+        new ApiResponse(200, {
+            user: loggedInUser,
+            accessToken, refreshToken
+        }, 'google login synced successfully')
     )
 })
