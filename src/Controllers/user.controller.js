@@ -154,6 +154,7 @@ export const userDetails = asyncHandler(async (req, res) => {
 
 export const googleAuth = asyncHandler(async (req, res) => {
     const { email, name, image } = req.body
+    console.log(email, name, image);
     let user = await User.findOne({ email })
     if (!user) {
         user = await User.create({
@@ -170,4 +171,33 @@ export const googleAuth = asyncHandler(async (req, res) => {
             accessToken, refreshToken
         }, 'google login synced successfully')
     )
+})
+
+export const updateProfile = asyncHandler(async (req, res) => {
+    const userId = req.user?._id
+    const user = await User.findById(userId)
+    const { name, password } = req.body
+    if (!user) {
+        throw new ApiError(404, 'unable to find the use')
+    }
+
+    if (name) {
+        user.name = name
+    }
+    if (password) {
+        user.password = password
+    }
+    if (req.file) {
+        const CloudinaryImage = await uploadOnCloudinary(req.file.path)
+        user.image = CloudinaryImage.url
+    }
+    await user.save({ validateBeforeSave: false })
+    const updatedUser = await User.findById(userId).select("-password -refreshToken");
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, updatedUser, "Profile updated successfully")
+        );
+
 })
