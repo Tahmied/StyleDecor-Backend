@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { googleAuth, loginCheck, loginUser, logoutUser, registerUser, updateProfile } from '../Controllers/user.controller.js'
+import { googleAuth, loginCheck, loginUser, logoutUser, profileDetails, registerUser, updateProfile } from '../Controllers/user.controller.js'
 import { findUser } from '../Middlewares/auth.middleware.js'
 import { mediaUpload } from '../Middlewares/multer.middleware.js'
 
@@ -13,5 +13,6 @@ router.post('/google-auth', googleAuth)
 
 
 router.post('/update-profile', findUser, updateProfile)
+router.get('/profile', findUser, profileDetails)
 
 export default router

@@ -201,3 +201,13 @@ export const updateProfile = asyncHandler(async (req, res) => {
         );
 
 })
+
+export const profileDetails = asyncHandler(async (req,res)=>{
+    const user = req.user
+    if(!user){
+        throw new ApiError(404, 'user not found')
+    }
+    return res.status(200).json(
+        new ApiResponse(200, user, 'user details fetched successfully')
+    )
+})
