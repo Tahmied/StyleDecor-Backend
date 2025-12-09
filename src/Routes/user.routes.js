@@ -12,7 +12,7 @@ router.get('/me', findUser, loginCheck)
 router.post('/google-auth', googleAuth)
 
 
-router.post('/update-profile', findUser, updateProfile)
+router.post('/update-profile', findUser, mediaUpload('/dp').single('image'), updateProfile)
 router.get('/profile', findUser, profileDetails)
 
 export default router
