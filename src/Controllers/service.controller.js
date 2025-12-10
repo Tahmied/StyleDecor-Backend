@@ -3,7 +3,7 @@ import { Service } from "../Models/service.model.js";
 import { ApiError } from "../Utils/apiError.js";
 import { ApiResponse } from '../Utils/ApiResponse.js';
 import { asyncHandler } from "../Utils/AsyncHandler.js";
-import { uploadOnCloudinary } from '../Utils/Cloudinary.js';
+import { deleteFromCloudinary, uploadOnCloudinary } from '../Utils/Cloudinary.js';
 
 export const addService = asyncHandler(async (req, res) => {
     const admin = req.admin
@@ -112,10 +112,48 @@ export const editService = asyncHandler(async (req, res) => {
     if (includes) {
         service.includes = typeof includes === 'string' ? JSON.parse(includes) : includes;
     }
-    
+
     const updatedService = await service.save();
 
     return res.status(200).json(
         new ApiResponse(200, updatedService, 'Service updated successfully')
+    );
+});
+
+export const deleteService = asyncHandler(async (req, res) => {
+  
+    const { serviceId } = req.body;
+
+    if (!serviceId) {
+        throw new ApiError(400, "Service ID is required");
+    }
+
+    const service = await Service.findById(serviceId);
+
+    if (!service) {
+        throw new ApiError(404, "Service not found");
+    }
+
+    if (service.images && service.images.length > 0) {
+        const deletePromises = service.images.map(async (imageUrl) => {
+            try {
+               
+                const parts = imageUrl.split('/');
+                const fileName = parts[parts.length - 1]; 
+                const folderName = parts[parts.length - 2]; 
+                const publicId = `${folderName}/${fileName.split('.')[0]}`;
+
+                await deleteFromCloudinary(publicId);
+            } catch (error) {
+                console.log("Failed to delete image from Cloudinary:", imageUrl);
+            }
+        });
+        await Promise.all(deletePromises);
+    }
+
+    await Service.findByIdAndDelete(serviceId);
+
+    return res.status(200).json(
+        new ApiResponse(200, {}, "Service deleted successfully")
     );
 });
