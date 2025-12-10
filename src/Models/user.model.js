@@ -47,6 +47,11 @@ const UserSchema = new mongoose.Schema({
     earnings: {
         type: Number,
         default: 0
+    },
+    createdByEmail: {
+        type: String,
+        unique: true,
+        required: false
     }
 }, { timestamps: true });
 

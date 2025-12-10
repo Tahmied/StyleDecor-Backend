@@ -27,3 +27,31 @@ export const findUser = asyncHandler(async (req, res, next) => {
     req.token = token
     next();
 });
+
+export const ifAdmin = asyncHandler(async (req, res, next) => {
+    const token = req.cookies?.accessToken || req.header("Authorization")?.replace('Bearer ', '');
+
+    if (!token) {
+        throw new ApiError(401, 'Token is missing');
+    }
+
+    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_KEY);
+
+    if (!decodedToken) {
+        throw new ApiError(401, 'Invalid token');
+    }
+
+    const user = await User.findById(decodedToken._id).select('-password');
+
+    if (!user) {
+        throw new ApiError(404, 'User not found');
+    }
+
+    if (user.role !== 'admin') {
+        throw new ApiError(403, 'Access denied. Admins only.');
+    }
+
+    req.admin = user;
+    req.token = token
+    next();
+})

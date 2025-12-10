@@ -1,16 +1,38 @@
 import mongoose, { Schema } from "mongoose";
 
 const ServiceSchema = new Schema({
-    service_name: {
+    serviceName: {
         type: String,
         required: [true, "Service name is required"],
         trim: true,
-        index: true 
+        index: true
     },
     description: {
         type: String,
-        required: [true, "Service description is required"],
+        required: true,
         trim: true
+    },
+    longDescription: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    duration: {
+        type: String,
+        required: true
+    },
+    serviceType: {
+        type: String,
+        default: "On-site",
+        enum: ["On-site", "Remote", "In-studio"]
+    },
+    features: {
+        type: [String], 
+        default: []
+    },
+    includes: {
+        type: [String], 
+        default: []
     },
     cost: {
         type: Number,
@@ -19,26 +41,19 @@ const ServiceSchema = new Schema({
     },
     unit: {
         type: String,
-        required: [true, "Unit is required"], 
-        trim: true
+        default: "per service"
     },
-    service_category: {
+    serviceCategory: {
         type: String,
         required: [true, "Category is required"],
-        enum: ["Decoration", "Lighting", "Catering", "Photography"], 
+        enum: ["Decoration", "Lighting", "Catering", "Photography"],
         trim: true
     },
     images: {
-        type: [String], 
+        type: [String],
         default: []
-    },
-    createdByEmail: {
-        type: String,
-        required: [true, "Creator email is required"],
-        lowercase: true,
-        trim: true
     }
-} , {
+}, {
     timestamps: true
 })
 
