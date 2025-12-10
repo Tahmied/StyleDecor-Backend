@@ -157,3 +157,10 @@ export const deleteService = asyncHandler(async (req, res) => {
         new ApiResponse(200, {}, "Service deleted successfully")
     );
 });
+
+export const allServices = asyncHandler(async (req,res)=>{
+    const services = await Service.find()
+    return res.status(200).json(
+        new ApiResponse(200, services, 'all services fetched successfully')
+    )
+})
