@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { addService, allServices, deleteService, editService, getServiceById } from "../Controllers/service.controller.js";
+import { AllUsers } from "../Controllers/user.controller.js";
 import { ifAdmin } from "../Middlewares/auth.middleware.js";
 import { mediaUpload } from "../Middlewares/multer.middleware.js";
 
@@ -10,5 +11,7 @@ router.post('/edit-service', ifAdmin, editService)
 router.post('/delete-service', ifAdmin, deleteService)
 router.get('/services', allServices)
 router.get(`/service/:serviceId`, getServiceById)
+
+router.get('/users', ifAdmin, AllUsers)
 
 export default router

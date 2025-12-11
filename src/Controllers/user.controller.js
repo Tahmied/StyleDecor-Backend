@@ -211,3 +211,14 @@ export const profileDetails = asyncHandler(async (req,res)=>{
         new ApiResponse(200, user, 'user details fetched successfully')
     )
 })
+
+export const AllUsers = asyncHandler(async (req,res)=>{
+    const users = await User.find()
+    if(!users){
+        throw new ApiError(500 , 'unable to find users')
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, users , 'all users fetched')
+    )
+})
