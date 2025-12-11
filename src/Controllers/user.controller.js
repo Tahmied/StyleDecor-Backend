@@ -222,3 +222,22 @@ export const AllUsers = asyncHandler(async (req,res)=>{
         new ApiResponse(200, users , 'all users fetched')
     )
 })
+
+export const UpdateUserRole = asyncHandler(async (req,res)=>{
+    const {role, userId} = req.body
+    if(!role || !userId){
+        throw new ApiError(400, 'role & user id is a required field')
+    }
+    
+    const user = await User.findById(userId)
+    if(!user){
+        throw new ApiError(500 , 'unable to find the user to update role')
+    }
+
+    user.role = role
+    await user.save()
+    const updatedUser = await User.findById(userId)
+    return res.status(200).json(
+        new ApiResponse(201, updatedUser, 'user role updated')
+    )
+})
