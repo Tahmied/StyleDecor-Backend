@@ -56,7 +56,10 @@ const UserSchema = new mongoose.Schema({
     phoneNumber: {
         type: String,
         required: false
-    }
+    },
+    unavailableDates: [{
+        type: Date
+    }]
 }, { timestamps: true });
 
 

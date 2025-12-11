@@ -48,3 +48,24 @@ export const BookService = asyncHandler(async (req, res) => {
         new ApiResponse(201, booking, "Service booked successfully")
     );
 });
+
+export const getAvailableDecorators = asyncHandler(async (req,res)=>{
+    const {date} = req.body
+    if(!date){
+        throw new ApiError(400 , 'data param is a required param')
+    }
+    const DateToSearch = new Date(date)
+
+    const decorators = await User.find({
+        role: 'decorator',
+        unavailableDates: {$nin: [DateToSearch]}
+    }).select('-password -unavailableDates')
+
+    if(!decorators){
+        throw new ApiError(500 , 'unable to find decorators')
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, decorators, 'Available decorators fetched')
+    )
+})
