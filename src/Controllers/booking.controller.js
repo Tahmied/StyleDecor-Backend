@@ -79,3 +79,36 @@ export const getAvailableDecorators = asyncHandler(async (req, res) => {
         new ApiResponse(200, availableDecorators, 'Available decorators fetched successfully')
     );
 })
+
+export const updateBookingStatus = asyncHandler(async (req, res) => {
+    const { bookingId, status } = req.body
+    if (!bookingId || !status) {
+        throw new ApiError(400, 'booking id and status are required')
+    }
+
+    const validStatuses = ['Assigned', 'cancelled', 'completed', 'in-progress']
+    if (!validStatuses.includes(status)) {
+        throw new ApiError(400, "Invalid status provided")
+    }
+
+    const booking = await Booking.findById(bookingId)
+    if (!booking) {
+        throw new ApiError(404, "Booking not found")
+    }
+
+    booking.status = status
+    await booking.save()
+
+    if (status === 'cancelled') {
+        const dateString = new Date(booking.eventDate).toISOString().split('T')[0];
+
+        await User.findByIdAndUpdate(booking.decoratorId, {
+            $pull: { unavailableDates: dateString } 
+        });
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, booking, `Booking status updated to ${status}`)
+    );
+
+})
