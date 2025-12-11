@@ -164,3 +164,19 @@ export const allServices = asyncHandler(async (req,res)=>{
         new ApiResponse(200, services, 'all services fetched successfully')
     )
 })
+
+export const getServiceById = asyncHandler(async (req,res)=>{
+    const {serviceId} = req.params
+    if(!serviceId){
+        throw new ApiError(404, 'serviceID is a required field')
+    }
+
+    const service = await Service.findById(serviceId)
+    if(!service){
+        throw new ApiError(404, 'service not found')
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, service, 'service details fetched')
+    )
+})
