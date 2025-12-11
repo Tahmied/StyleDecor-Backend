@@ -23,8 +23,7 @@ const ServiceSchema = new Schema({
     },
     serviceType: {
         type: String,
-        default: "On-site",
-        enum: ["On-site", "Remote", "In-studio"]
+        default: "On-site"
     },
     features: {
         type: [String], 
@@ -46,7 +45,6 @@ const ServiceSchema = new Schema({
     serviceCategory: {
         type: String,
         required: [true, "Category is required"],
-        enum: ["Decoration", "Lighting", "Catering", "Photography"],
         trim: true
     },
     images: {
