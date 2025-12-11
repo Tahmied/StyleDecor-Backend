@@ -19,7 +19,7 @@ export const BookService = asyncHandler(async (req, res) => {
 
     const decorator = await User.findById(decoratorId);
     if (!decorator) {
-        throw new ApiError(404, 'Unable to find the decorator'); 
+        throw new ApiError(404, 'Unable to find the decorator');
     }
 
     const service = await Service.findById(serviceId);
@@ -28,10 +28,10 @@ export const BookService = asyncHandler(async (req, res) => {
     }
 
     const booking = await Booking.create({
-        customer: customer._id, 
+        customer: customer._id,
         customerName: customer.name,
         customerImage: customer.image || "",
-        customerPhoneNumber: customer.phoneNumber || "", 
+        customerPhoneNumber: customer.phoneNumber || "",
         decoratorId: decorator._id,
         decoratorName: decorator.name,
         decoratorNum: decorator.phoneNumber || "",
@@ -40,32 +40,42 @@ export const BookService = asyncHandler(async (req, res) => {
         serviceName: service.serviceName,
         servicePrice: service.cost,
         eventDate, eventTime,
-        eventLocation, 
+        eventLocation,
         bookingNotes: bookingNotes || ""
     });
+
+    await User.findByIdAndUpdate(
+        decorator._id,
+        {
+            $push: { unavailableDates: eventDate }
+        },
+        { new: true }
+    );
 
     return res.status(201).json(
         new ApiResponse(201, booking, "Service booked successfully")
     );
 });
 
-export const getAvailableDecorators = asyncHandler(async (req,res)=>{
-    const {date} = req.body
-    if(!date){
-        throw new ApiError(400 , 'data param is a required param')
-    }
-    const DateToSearch = new Date(date)
+export const getAvailableDecorators = asyncHandler(async (req, res) => {
+    const { date } = req.body;
 
-    const decorators = await User.find({
+    if (!date) {
+        throw new ApiError(400, "Date is required (YYYY-MM-DD)");
+    }
+    const searchDate = new Date(date);
+
+    const bookedDecorators = await Booking.find({
+        eventDate: searchDate,
+        paymentStatus: 'paid'
+    }).distinct('decoratorId');
+
+    const availableDecorators = await User.find({
         role: 'decorator',
-        unavailableDates: {$nin: [DateToSearch]}
-    }).select('-password -unavailableDates')
-
-    if(!decorators){
-        throw new ApiError(500 , 'unable to find decorators')
-    }
+        _id: { $nin: bookedDecorators }
+    }).select('-password');
 
     return res.status(200).json(
-        new ApiResponse(200, decorators, 'Available decorators fetched')
-    )
+        new ApiResponse(200, availableDecorators, 'Available decorators fetched successfully')
+    );
 })

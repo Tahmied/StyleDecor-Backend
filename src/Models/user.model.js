@@ -58,7 +58,7 @@ const UserSchema = new mongoose.Schema({
         required: false
     },
     unavailableDates: [{
-        type: Date
+        type: String
     }]
 }, { timestamps: true });
 
