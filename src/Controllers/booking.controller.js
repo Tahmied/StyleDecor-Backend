@@ -112,3 +112,13 @@ export const updateBookingStatus = asyncHandler(async (req, res) => {
     );
 
 })
+
+export const AllBookings = asyncHandler(async (req,res)=>{
+    const bookings = await Booking.find()
+    if(!bookings){
+        throw new ApiError(500, 'bookings not found')
+    }
+    return res.status(200).json(
+        new ApiResponse(200, bookings, 'all bookings fetched')
+    )
+})
