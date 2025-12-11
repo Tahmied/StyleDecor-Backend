@@ -50,6 +50,14 @@ const ServiceSchema = new Schema({
     images: {
         type: [String],
         default: []
+    },
+    rating: {
+        type: Number,
+        default: 5.00
+    },
+    reviews: {
+        type: Number,
+        default: 213
     }
 }, {
     timestamps: true

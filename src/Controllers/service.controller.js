@@ -48,6 +48,9 @@ export const addService = asyncHandler(async (req, res) => {
         throw new ApiError(400, "At least one image is required");
     }
 
+    const rating = parseFloat((Math.random() * 2 + 3).toFixed(1))
+    const reviews = Math.floor(Math.random() * (500 - 200 + 1)) + 200;
+
     const service = await Service.create({
         serviceName,
         description,
@@ -59,7 +62,9 @@ export const addService = asyncHandler(async (req, res) => {
         cost,
         unit,
         serviceCategory,
-        images: imageUrls, createdByEmail: admin.email
+        images: imageUrls, createdByEmail: admin.email,
+        rating: rating,
+        reviews: reviews
     });
 
     if (!service) {
