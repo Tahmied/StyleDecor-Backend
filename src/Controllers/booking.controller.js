@@ -8,7 +8,7 @@ import { asyncHandler } from "../Utils/AsyncHandler.js";
 export const BookService = asyncHandler(async (req, res) => {
     const { decoratorId, serviceId, eventDate, eventTime, eventLocation, bookingNotes } = req.body;
 
-    if (!decoratorId || !serviceId || !eventDate || !eventTime || !eventLocation || !eventLocation) {
+    if (!decoratorId || !serviceId || !eventDate || !eventTime) {
         throw new ApiError(400, 'All required fields (including Event Address) are missing');
     }
 

@@ -57,7 +57,7 @@ const BookingSchema = new mongoose.Schema({
     },
     eventLocation: {
         type: String, 
-        required: true
+        required: false
     },
     bookingNotes: {
         type: String,
