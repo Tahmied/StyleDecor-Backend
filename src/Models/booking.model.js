@@ -6,10 +6,33 @@ const BookingSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    customerName: {
+        type: String,
+        required: false,
+        trim: true
+    },
+    customerImage: {
+        type: String
+    },
+    customerPhoneNumber: {
+        type: String
+    },
     decoratorId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
+    },
+    decoratorName: {
+        type: String,
+        required: false,
+        trim: true
+    },
+    decoratorNum: {
+        type: String,
+        required: false
+    },
+    decoratorImage: {
+        type: String
     },
     serviceId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -28,14 +51,18 @@ const BookingSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
+    eventTime: {
+        type: String, 
+        required: true 
+    },
     eventLocation: {
-        address: { type: String, required: true },
-        city: { type: String, default: '' },
-        zip: { type: String, default: '' }
+        type: String, 
+        required: true
     },
     bookingNotes: {
         type: String,
-        trim: true
+        trim: true,
+        required: false
     },
     status: {
         type: String,
