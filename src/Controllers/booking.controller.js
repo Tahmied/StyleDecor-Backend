@@ -102,21 +102,22 @@ export const updateBookingStatus = asyncHandler(async (req, res) => {
             booking.decoratorId,
             {
                 $inc: {
-                    totalEarnings: booking.servicePrice 
+                    totalEarnings: booking.servicePrice
                 },
 
                 $push: {
                     earningsHistory: {
-                        amount: booking.servicePrice, 
-                        
+                        amount: booking.servicePrice,
+
                         date: new Date(),
                         bookingId: booking._id,
-                        description: `Payment for ${booking.serviceName}` 
+                        description: `Payment for ${booking.serviceName}`
                     }
                 }
             },
             { new: true }
-        )};
+        )
+    };
 
     booking.status = status
     await booking.save()
@@ -149,12 +150,21 @@ export const getDecoratorStats = asyncHandler(async (req, res) => {
                 entryDate.getFullYear() === currentYear;
         })
         .reduce((sum, entry) => sum + entry.amount, 0);
+
+    const completedProjectsCount = await Booking.countDocuments({
+        decoratorId: req.user._id,
+        status: { $regex: /^completed$/i }
+    });
+
+    console.log(completedProjectsCount);
+
     return res.status(200).json({
         success: true,
         data: {
             totalEarnings: user.totalEarnings,
             thisMonthEarnings: monthlyEarnings,
-            history: user.earningsHistory
+            history: user.earningsHistory,
+            completedProjectsCount
         }
     });
 });
