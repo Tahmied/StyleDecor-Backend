@@ -122,3 +122,20 @@ export const AllBookings = asyncHandler(async (req,res)=>{
         new ApiResponse(200, bookings, 'all bookings fetched')
     )
 })
+
+export const MyBookings = asyncHandler(async (req,res)=>{
+    const user = req.user
+    if(!user){
+        throw new ApiError(404, 'user must be logged in')
+    }
+
+    const MyBookings = await Booking.find({
+        customer:user._id
+    })
+    if(!MyBookings){
+        throw new ApiError('500', 'unable to find my bookings')
+    }
+    return res.status(200).json(
+        new ApiResponse(200, MyBookings, 'my bookings fetched')
+    )
+})
