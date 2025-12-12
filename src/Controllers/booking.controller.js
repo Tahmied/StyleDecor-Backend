@@ -139,3 +139,22 @@ export const MyBookings = asyncHandler(async (req,res)=>{
         new ApiResponse(200, MyBookings, 'my bookings fetched')
     )
 })
+
+export const UserUpdateBookingStatus = asyncHandler(async (req,res)=>{
+    const user = req.user
+    const {bookingId, status} = req.body
+    if(!user || !bookingId || !status){
+        throw new ApiError(400, 'user must be logged in')
+    }
+
+    const booking = await Booking.findById(bookingId)
+    if(!booking){
+        throw new ApiError(404 , 'no bookings found for this id')
+    }
+
+    booking.status = status
+    await booking.save()
+    return res.status(200).json(
+        new ApiResponse(200, 'booking status updated')
+    )
+})
