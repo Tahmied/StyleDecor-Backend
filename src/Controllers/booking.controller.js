@@ -159,3 +159,25 @@ export const UserUpdateBookingStatus = asyncHandler(async (req,res)=>{
         new ApiResponse(200, 'booking status updated')
     )
 })
+
+export const MyServiceBookings = asyncHandler(async (req,res)=>{
+    const user = req.user
+    if(!user){
+        throw new ApiError(400,'user must be logged in')
+    }
+    if(user.role!=='decorator'){
+        throw new ApiError(400, 'You are not a decorator')
+    }
+
+    const MyBookings = await Booking.find({
+        decoratorId: user._id
+    })
+    if(!MyBookings){
+        throw new ApiError(500, 'unable to find your bookings')
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200 , MyBookings, 'your bookings are fetched')
+    )
+
+})
