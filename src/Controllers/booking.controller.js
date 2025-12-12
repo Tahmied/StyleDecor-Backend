@@ -225,7 +225,8 @@ export const MyServiceBookings = asyncHandler(async (req, res) => {
     }
 
     const MyBookings = await Booking.find({
-        decoratorId: user._id
+        decoratorId: user._id,
+        status: { $ne: 'pending' }
     })
     if (!MyBookings) {
         throw new ApiError(500, 'unable to find your bookings')
@@ -236,3 +237,25 @@ export const MyServiceBookings = asyncHandler(async (req, res) => {
     )
 
 })
+
+export const getTodaysDecorSchedule = asyncHandler(async (req, res) => {
+    const decoratorId = req.user._id;
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    const bookings = await Booking.find({
+        decoratorId: decoratorId,
+        eventDate: {
+            $gte: startOfDay, 
+            $lte: endOfDay    
+        },
+        status: { $ne: 'cancelled' } 
+    }).populate("serviceId", "serviceName duration"); 
+
+    return res.status(200).json(
+        new ApiResponse(200, bookings, "Today's schedule fetched successfully")
+    );
+});
