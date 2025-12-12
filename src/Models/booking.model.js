@@ -22,6 +22,10 @@ const BookingSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    serviceCategory: {
+        type: String,
+        required:false
+    },
     decoratorName: {
         type: String,
         required: false,

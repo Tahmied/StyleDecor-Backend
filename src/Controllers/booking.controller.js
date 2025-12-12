@@ -6,7 +6,7 @@ import { ApiResponse } from "../Utils/ApiResponse.js";
 import { asyncHandler } from "../Utils/AsyncHandler.js";
 
 export const BookService = asyncHandler(async (req, res) => {
-    const { decoratorId, serviceId, eventDate, eventTime, eventLocation, bookingNotes } = req.body;
+    const { decoratorId, serviceId, eventDate, eventTime, eventLocation, bookingNotes, serviceCategory } = req.body;
 
     if (!decoratorId || !serviceId || !eventDate || !eventTime) {
         throw new ApiError(400, 'All required fields (including Event Address) are missing');
@@ -41,7 +41,8 @@ export const BookService = asyncHandler(async (req, res) => {
         servicePrice: service.cost,
         eventDate, eventTime,
         eventLocation,
-        bookingNotes: bookingNotes || ""
+        bookingNotes: bookingNotes || "",
+        serviceCategory
     });
 
     await User.findByIdAndUpdate(
