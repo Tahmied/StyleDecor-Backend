@@ -97,6 +97,27 @@ export const updateBookingStatus = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Booking not found")
     }
 
+    if (status === 'Assigned') {
+        const updatedDecorator = await User.findByIdAndUpdate(
+            booking.decoratorId,
+            {
+                $inc: {
+                    totalEarnings: booking.servicePrice 
+                },
+
+                $push: {
+                    earningsHistory: {
+                        amount: booking.servicePrice, 
+                        
+                        date: new Date(),
+                        bookingId: booking._id,
+                        description: `Payment for ${booking.serviceName}` 
+                    }
+                }
+            },
+            { new: true }
+        )};
+
     booking.status = status
     await booking.save()
 
@@ -104,7 +125,7 @@ export const updateBookingStatus = asyncHandler(async (req, res) => {
         const dateString = new Date(booking.eventDate).toISOString().split('T')[0];
 
         await User.findByIdAndUpdate(booking.decoratorId, {
-            $pull: { unavailableDates: dateString } 
+            $pull: { unavailableDates: dateString }
         });
     }
 
@@ -114,9 +135,33 @@ export const updateBookingStatus = asyncHandler(async (req, res) => {
 
 })
 
-export const AllBookings = asyncHandler(async (req,res)=>{
+export const getDecoratorStats = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const monthlyEarnings = user.earningsHistory
+        .filter(entry => {
+            const entryDate = new Date(entry.date);
+            return entryDate.getMonth() === currentMonth &&
+                entryDate.getFullYear() === currentYear;
+        })
+        .reduce((sum, entry) => sum + entry.amount, 0);
+    return res.status(200).json({
+        success: true,
+        data: {
+            totalEarnings: user.totalEarnings,
+            thisMonthEarnings: monthlyEarnings,
+            history: user.earningsHistory
+        }
+    });
+});
+
+export const AllBookings = asyncHandler(async (req, res) => {
     const bookings = await Booking.find()
-    if(!bookings){
+    if (!bookings) {
         throw new ApiError(500, 'bookings not found')
     }
     return res.status(200).json(
@@ -124,16 +169,16 @@ export const AllBookings = asyncHandler(async (req,res)=>{
     )
 })
 
-export const MyBookings = asyncHandler(async (req,res)=>{
+export const MyBookings = asyncHandler(async (req, res) => {
     const user = req.user
-    if(!user){
+    if (!user) {
         throw new ApiError(404, 'user must be logged in')
     }
 
     const MyBookings = await Booking.find({
-        customer:user._id
+        customer: user._id
     })
-    if(!MyBookings){
+    if (!MyBookings) {
         throw new ApiError('500', 'unable to find my bookings')
     }
     return res.status(200).json(
@@ -141,16 +186,16 @@ export const MyBookings = asyncHandler(async (req,res)=>{
     )
 })
 
-export const UserUpdateBookingStatus = asyncHandler(async (req,res)=>{
+export const UserUpdateBookingStatus = asyncHandler(async (req, res) => {
     const user = req.user
-    const {bookingId, status} = req.body
-    if(!user || !bookingId || !status){
+    const { bookingId, status } = req.body
+    if (!user || !bookingId || !status) {
         throw new ApiError(400, 'user must be logged in')
     }
 
     const booking = await Booking.findById(bookingId)
-    if(!booking){
-        throw new ApiError(404 , 'no bookings found for this id')
+    if (!booking) {
+        throw new ApiError(404, 'no bookings found for this id')
     }
 
     booking.status = status
@@ -160,24 +205,24 @@ export const UserUpdateBookingStatus = asyncHandler(async (req,res)=>{
     )
 })
 
-export const MyServiceBookings = asyncHandler(async (req,res)=>{
+export const MyServiceBookings = asyncHandler(async (req, res) => {
     const user = req.user
-    if(!user){
-        throw new ApiError(400,'user must be logged in')
+    if (!user) {
+        throw new ApiError(400, 'user must be logged in')
     }
-    if(user.role!=='decorator'){
+    if (user.role !== 'decorator') {
         throw new ApiError(400, 'You are not a decorator')
     }
 
     const MyBookings = await Booking.find({
         decoratorId: user._id
     })
-    if(!MyBookings){
+    if (!MyBookings) {
         throw new ApiError(500, 'unable to find your bookings')
     }
 
     return res.status(200).json(
-        new ApiResponse(200 , MyBookings, 'your bookings are fetched')
+        new ApiResponse(200, MyBookings, 'your bookings are fetched')
     )
 
 })

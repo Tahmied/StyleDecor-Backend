@@ -24,7 +24,7 @@ const BookingSchema = new mongoose.Schema({
     },
     serviceCategory: {
         type: String,
-        required:false
+        required: false
     },
     decoratorName: {
         type: String,
@@ -56,11 +56,11 @@ const BookingSchema = new mongoose.Schema({
         required: true
     },
     eventTime: {
-        type: String, 
-        required: true 
+        type: String,
+        required: true
     },
     eventLocation: {
-        type: String, 
+        type: String,
         required: false
     },
     bookingNotes: {

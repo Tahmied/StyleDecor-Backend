@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const UserSchema = new mongoose.Schema({
     name: {
@@ -59,7 +59,18 @@ const UserSchema = new mongoose.Schema({
     },
     unavailableDates: [{
         type: String
-    }]
+    }],
+    totalEarnings: {
+        type: Number,
+        default: 0
+    },
+    earningsHistory: [
+        {
+            amount: { type: Number, required: true },
+            date: { type: Date, default: Date.now },
+            bookingId: { type: Schema.Types.ObjectId, ref: "Booking" }
+        }
+    ]
 }, { timestamps: true });
 
 
