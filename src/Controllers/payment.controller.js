@@ -1,9 +1,10 @@
 import Stripe from "stripe";
-import { Booking } from "../Models/booking.model";
-import { Service } from "../Models/service.model";
-import { User } from "../Models/user.model";
-import { asyncHandler } from "../Utils/AsyncHandler";
-import { ApiError } from "../Utils/apiError";
+import { Booking } from "../Models/booking.model.js";
+import { Service } from "../Models/service.model.js";
+import { User } from "../Models/user.model.js";
+import { ApiError } from "../Utils/apiError.js";
+import { ApiResponse } from "../Utils/ApiResponse.js";
+import { asyncHandler } from "../Utils/AsyncHandler.js";
 
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -80,7 +81,6 @@ export const VerifyPaymentAndBook = asyncHandler(async (req, res) => {
     if (existingBooking) {
         return res.status(200).json(new ApiResponse(200, existingBooking, "Booking already exists"));
     }
-
     const {
         userId,
         decoratorId,

@@ -13,10 +13,13 @@ app.use(express.static('public'))
 // routes
 import adminRoutes from './Routes/admin.routes.js'
 import bookingRoutes from './Routes/booking.routes.js'
+import paymentRoutes from './Routes/payment.routes.js'
 import userRoutes from './Routes/user.routes.js'
 
 app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/admin', adminRoutes)
 app.use('/api/v1/booking', bookingRoutes)
+app.use('/api/v1/payment', paymentRoutes)
+
 
 export { app }

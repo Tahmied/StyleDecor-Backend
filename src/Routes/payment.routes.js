@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { CreateCheckoutSession, VerifyPaymentAndBook } from "../Controllers/payment.controller";
-import { findUser } from "../Middlewares/auth.middleware";
+import { CreateCheckoutSession, VerifyPaymentAndBook } from "../Controllers/payment.controller.js";
+import { findUser } from "../Middlewares/auth.middleware.js";
 
-const router = Router
+const router = Router()
 
 router.post('/create-checkout-session', findUser, CreateCheckoutSession)
 router.post('/verify-payment', findUser, VerifyPaymentAndBook)
