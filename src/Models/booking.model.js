@@ -76,7 +76,11 @@ const BookingSchema = new mongoose.Schema({
     paymentStatus: {
         type: String,
         enum: ['unpaid', 'paid'],
-        default: 'paid'
+        default: 'unpaid'
+    },
+    transactionId: {
+        type: String,
+        required: true
     }
 }, {
     timestamps: true
