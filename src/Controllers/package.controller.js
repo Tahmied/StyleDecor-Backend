@@ -46,3 +46,44 @@ export const createPackage = asyncHandler(async (req, res) => {
         new ApiResponse(201, newPackage, "Package created successfully")
     );
 });
+
+export const getAllPackages = asyncHandler(async (req, res) => {
+    const packages = await Package.find().sort({ createdAt: -1 });
+    
+    return res.status(200).json(
+        new ApiResponse(200, packages, "Packages fetched successfully")
+    );
+});
+
+export const deletePackage = asyncHandler(async (req, res) => {
+    const { packageId } = req.body; 
+
+    const pkg = await Package.findById(packageId);
+    if (!pkg) {
+        throw new ApiError(404, "Package not found");
+    }
+    const getPublicId = (url) => {
+        if (!url) return null;
+        const parts = url.split('/');
+        const fileName = parts[parts.length - 1];
+        const folderName = parts[parts.length - 2]; 
+        return `${folderName}/${fileName.split('.')[0]}`;
+    };
+
+    if (pkg.mainImage) await deleteFromCloudinary(getPublicId(pkg.mainImage));
+    
+    if (pkg.videoThumbnail) await deleteFromCloudinary(getPublicId(pkg.videoThumbnail));
+
+    if (pkg.thumbnails.length > 0) {
+        for (const url of pkg.thumbnails) {
+            await deleteFromCloudinary(getPublicId(url));
+        }
+    }
+
+    await Package.findByIdAndDelete(packageId);
+
+    return res.status(200).json(
+        new ApiResponse(200, {}, "Package deleted successfully")
+    );
+});
+
