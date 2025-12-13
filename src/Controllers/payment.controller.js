@@ -3,30 +3,38 @@ import { Booking } from "../Models/booking.model";
 import { Service } from "../Models/service.model";
 import { User } from "../Models/user.model";
 import { asyncHandler } from "../Utils/AsyncHandler";
+import { ApiError } from "../Utils/apiError";
 
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 
 export const CreateCheckoutSession = asyncHandler(async (req, res) => {
-    const { 
-        serviceId, 
+    const {
+        serviceId,
         decoratorId,
-        eventDate, 
-        eventTime,  
-        eventLocation, 
-        bookingNotes,
-        serviceName, 
-        price, 
-        image, 
-        userId,
-        serviceCategory
+        eventDate,
+        eventTime,
+        eventLocation,
+        bookingNotes
     } = req.body;
 
-    if (!serviceId || !decoratorId || !eventDate || !eventTime || !userId) {
+    if (!serviceId || !decoratorId || !eventDate || !eventTime) {
         throw new ApiError(400, "Missing required booking details (Decorator, Date, Time, etc.)");
     }
 
+    const service = await Service.findById(serviceId)
+    if (!service) {
+        throw new ApiError(500, 'unable to find the service to book')
+    }
+    const serviceName = service.serviceName
+    const price = service.cost
+    const userId = req.user._id
+    const serviceCategory = service.serviceCategory
+
+    if (!userId) {
+        throw new ApiError(400, 'user must be logged in')
+    }
     const session = await stripe.checkout.sessions.create({
         line_items: [
             {
@@ -44,9 +52,9 @@ export const CreateCheckoutSession = asyncHandler(async (req, res) => {
         success_url: `${process.env.FRONTEND_URI}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.FRONTEND_URI}/services/${serviceId}`,
         metadata: {
-            userId,           
-            decoratorId,      
-            serviceId,      
+            userId: userId.toString(),
+            decoratorId,
+            serviceId,
             eventDate,
             eventTime,
             eventLocation,
@@ -67,21 +75,21 @@ export const VerifyPaymentAndBook = asyncHandler(async (req, res) => {
     if (session.payment_status !== "paid") {
         throw new ApiError(400, "Payment not verified");
     }
-    
+
     const existingBooking = await Booking.findOne({ transactionId: session.payment_intent });
     if (existingBooking) {
         return res.status(200).json(new ApiResponse(200, existingBooking, "Booking already exists"));
     }
 
-    const { 
-        userId, 
-        decoratorId, 
-        serviceId, 
-        eventDate, 
-        eventTime, 
-        eventLocation, 
-        bookingNotes, 
-        serviceCategory 
+    const {
+        userId,
+        decoratorId,
+        serviceId,
+        eventDate,
+        eventTime,
+        eventLocation,
+        bookingNotes,
+        serviceCategory
     } = session.metadata;
 
 
@@ -98,25 +106,25 @@ export const VerifyPaymentAndBook = asyncHandler(async (req, res) => {
         customerName: customer.name,
         customerImage: customer.image || "",
         customerPhoneNumber: customer.phoneNumber || "",
-        
+
         decoratorId: decorator._id,
         decoratorName: decorator.name,
         decoratorNum: decorator.phoneNumber || "",
         decoratorImage: decorator.image || "",
-        
+
         serviceId: service._id,
         serviceName: service.serviceName,
-        servicePrice: session.amount_total / 100, 
+        servicePrice: session.amount_total / 100,
         serviceCategory: serviceCategory,
-        
-        eventDate: new Date(eventDate), 
+
+        eventDate: new Date(eventDate),
         eventTime: eventTime,
         eventLocation: eventLocation,
         bookingNotes: bookingNotes,
-        
-        status: "Assigned", 
+
+        status: "Assigned",
         paymentStatus: "paid",
-        transactionId: session.payment_intent 
+        transactionId: session.payment_intent
     });
 
     await User.findByIdAndUpdate(
