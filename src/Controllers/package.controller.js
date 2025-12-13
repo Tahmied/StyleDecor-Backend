@@ -87,3 +87,38 @@ export const deletePackage = asyncHandler(async (req, res) => {
     );
 });
 
+export const editPackage = asyncHandler(async (req, res) => {
+    const { packageId, packageType, price, reversed, description } = req.body;
+
+    const pkg = await Package.findById(packageId);
+    if (!pkg) throw new ApiError(404, "Package not found");
+
+    if (packageType) pkg.packageType = packageType;
+    if (price) pkg.price = Number(price);
+    if (description) pkg.description = description;
+    if (typeof reversed !== 'undefined') pkg.reversed = reversed === 'true';
+
+    if (req.files?.mainImage?.[0]) {
+        const mainImg = await uploadOnCloudinary(req.files.mainImage[0].path);
+        pkg.mainImage = mainImg.url;
+    }
+
+    if (req.files?.videoThumbnail?.[0]) {
+        const vidThumb = await uploadOnCloudinary(req.files.videoThumbnail[0].path);
+        pkg.videoThumbnail = vidThumb.url;
+    }
+
+    if (req.files?.thumbnails?.length > 0) {
+        const uploadPromises = req.files.thumbnails.map(file => uploadOnCloudinary(file.path));
+        const results = await Promise.all(uploadPromises);
+        const newUrls = results.map(res => res?.url).filter(url => url !== null);
+        
+        pkg.thumbnails = [...pkg.thumbnails, ...newUrls];
+    }
+
+    await pkg.save();
+
+    return res.status(200).json(
+        new ApiResponse(200, pkg, "Package updated successfully")
+    );
+});
