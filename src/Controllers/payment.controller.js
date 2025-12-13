@@ -51,14 +51,14 @@ export const CreateCheckoutSession = asyncHandler(async (req, res) => {
         ],
         mode: "payment",
         success_url: `${process.env.FRONTEND_URI}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.FRONTEND_URI}/services/${serviceId}`,
+        cancel_url: `${process.env.FRONTEND_URI}/service/${serviceId}`,
         metadata: {
             userId: userId.toString(),
             decoratorId,
             serviceId,
             eventDate,
             eventTime,
-            eventLocation,
+            eventLocation : eventLocation || '',
             serviceCategory,
             bookingNotes: bookingNotes || "",
             price
@@ -122,7 +122,7 @@ export const VerifyPaymentAndBook = asyncHandler(async (req, res) => {
         eventLocation: eventLocation,
         bookingNotes: bookingNotes,
 
-        status: "Assigned",
+        status: "pending",
         paymentStatus: "paid",
         transactionId: session.payment_intent
     });
