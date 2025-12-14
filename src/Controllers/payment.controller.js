@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { Booking } from "../Models/booking.model.js";
+import { Payment } from "../Models/payment.model.js";
 import { Service } from "../Models/service.model.js";
 import { User } from "../Models/user.model.js";
 import { ApiError } from "../Utils/apiError.js";
@@ -58,7 +59,7 @@ export const CreateCheckoutSession = asyncHandler(async (req, res) => {
             serviceId,
             eventDate,
             eventTime,
-            eventLocation : eventLocation || '',
+            eventLocation: eventLocation || '',
             serviceCategory,
             bookingNotes: bookingNotes || "",
             price
@@ -127,6 +128,16 @@ export const VerifyPaymentAndBook = asyncHandler(async (req, res) => {
         transactionId: session.payment_intent
     });
 
+    const newPayment = await Payment.create({
+        transactionId: session.payment_intent,
+        amount: session.amount_total / 100,
+        serviceName: service.serviceName,
+        customerId: customer._id,
+        customerPhone: customer.phoneNumber || "N/A",
+        bookingId: newBooking._id,
+        status: 'paid'
+    })
+
     await User.findByIdAndUpdate(
         decorator._id,
         {
@@ -134,8 +145,11 @@ export const VerifyPaymentAndBook = asyncHandler(async (req, res) => {
         },
         { new: true }
     );
-
+    const response = {
+        newBooking: newBooking,
+        newPayment: newPayment
+    }
     return res.status(200).json(
-        new ApiResponse(200, newBooking, "Payment verified and complete booking created")
+        new ApiResponse(200, response, "Payment verified and complete booking created")
     );
 });

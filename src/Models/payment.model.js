@@ -5,7 +5,7 @@ const PaymentSchema = new Schema(
         transactionId: {
             type: String,
             required: true,
-            unique: true, 
+            unique: true,
             index: true
         },
         amount: {
@@ -14,18 +14,22 @@ const PaymentSchema = new Schema(
         },
         currency: {
             type: String,
-            default: "bdt", 
-            uppercase: true 
+            default: "bdt",
+            uppercase: true
         },
         serviceName: {
             type: String,
             required: true,
             trim: true
         },
-        customer: {
+        customerId: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true
+        },
+        customerPhone: {
+            type: String,
+            required: false
         },
         bookingId: {
             type: Schema.Types.ObjectId,
@@ -38,11 +42,11 @@ const PaymentSchema = new Schema(
         },
         paymentDate: {
             type: Date,
-            default: Date.now 
+            default: Date.now
         }
     },
     {
-        timestamps: true 
+        timestamps: true
     }
 );
 
