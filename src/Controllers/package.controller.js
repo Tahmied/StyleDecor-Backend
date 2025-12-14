@@ -12,7 +12,6 @@ export const createPackage = asyncHandler(async (req, res) => {
     }
 
     let mainImageUrl = "";
-    let videoThumbnailUrl = "";
     let thumbnailUrls = [];
 
     if (req.files && req.files.mainImage && req.files.mainImage[0]) {
@@ -20,10 +19,6 @@ export const createPackage = asyncHandler(async (req, res) => {
         mainImageUrl = mainImg?.url;
     } else {
         throw new ApiError(400, "Main image is required");
-    }
-    if (req.files && req.files.videoThumbnail && req.files.videoThumbnail[0]) {
-        const vidThumb = await uploadOnCloudinary(req.files.videoThumbnail[0].path);
-        videoThumbnailUrl = vidThumb?.url;
     }
 
     if (req.files && req.files.thumbnails && req.files.thumbnails.length > 0) {
@@ -36,7 +31,6 @@ export const createPackage = asyncHandler(async (req, res) => {
         packageName,
         price: Number(price),
         mainImage: mainImageUrl,
-        videoThumbnail: videoThumbnailUrl || "",
         thumbnails: thumbnailUrls,
         description: description || "",
         serviceLink
@@ -72,8 +66,6 @@ export const deletePackage = asyncHandler(async (req, res) => {
 
     if (pkg.mainImage) await deleteFromCloudinary(getPublicId(pkg.mainImage));
 
-    if (pkg.videoThumbnail) await deleteFromCloudinary(getPublicId(pkg.videoThumbnail));
-
     if (pkg.thumbnails.length > 0) {
         for (const url of pkg.thumbnails) {
             await deleteFromCloudinary(getPublicId(url));
@@ -88,7 +80,7 @@ export const deletePackage = asyncHandler(async (req, res) => {
 });
 
 export const editPackage = asyncHandler(async (req, res) => {
-    const { packageId, packageName, price, description, serviceLink, videoUrl, deleteThumbnails } = req.body;
+    const { packageId, packageName, price, description, serviceLink, deleteThumbnails } = req.body;
 
     const pkg = await Package.findById(packageId);
     if (!pkg) throw new ApiError(404, "Package not found");
@@ -97,7 +89,6 @@ export const editPackage = asyncHandler(async (req, res) => {
     if (price) pkg.price = Number(price);
     if (description !== undefined) pkg.description = description;
     if (serviceLink !== undefined) pkg.serviceLink = serviceLink;
-    if (videoUrl !== undefined) pkg.videoUrl = videoUrl;
 
     const getPublicId = (url) => {
         if (!url) return null;
@@ -111,12 +102,6 @@ export const editPackage = asyncHandler(async (req, res) => {
         if (pkg.mainImage) await deleteFromCloudinary(getPublicId(pkg.mainImage));
         const mainImg = await uploadOnCloudinary(req.files.mainImage[0].path);
         if (mainImg?.url) pkg.mainImage = mainImg.url;
-    }
-
-    if (req.files?.videoThumbnail?.[0]) {
-        if (pkg.videoThumbnail) await deleteFromCloudinary(getPublicId(pkg.videoThumbnail));
-        const vidThumb = await uploadOnCloudinary(req.files.videoThumbnail[0].path);
-        if (vidThumb?.url) pkg.videoThumbnail = vidThumb.url;
     }
 
     let imagesToDelete = [];

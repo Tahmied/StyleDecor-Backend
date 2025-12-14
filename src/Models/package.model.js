@@ -16,14 +16,6 @@ const packageSchema = new Schema(
             type: String,
             required: true 
         },
-        videoThumbnail: {
-            type: String, 
-            required: false 
-        },
-        videoUrl: {
-            type: String,
-            required:false
-        },
         thumbnails: {
             type: [String],
             default: []
