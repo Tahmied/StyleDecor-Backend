@@ -135,7 +135,8 @@ export const VerifyPaymentAndBook = asyncHandler(async (req, res) => {
         customerId: customer._id,
         customerPhone: customer.phoneNumber || "N/A",
         bookingId: newBooking._id,
-        status: 'paid'
+        status: 'paid',
+        decoratorId: decorator._id
     })
 
     await User.findByIdAndUpdate(

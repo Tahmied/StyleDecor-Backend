@@ -43,6 +43,11 @@ const PaymentSchema = new Schema(
         paymentDate: {
             type: Date,
             default: Date.now
+        },
+        decoratorId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User', 
+            required: true
         }
     },
     {
