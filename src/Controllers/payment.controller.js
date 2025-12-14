@@ -167,3 +167,16 @@ export const myPayments = asyncHandler(async (req, res) => {
         new ApiResponse(200, paymentDetails, 'Payment details fetched successfully')
     );
 });
+
+export const myDecorPay = asyncHandler(async (req,res)=>{
+    const decorator = req.user
+    if(!decorator){
+        throw new ApiError(400 , 'decorator must be logged in')
+    }
+
+    const payments = await Payment.find({decoratorId:decorator._id}).sort({createdAt: -1})
+    
+    return res.status(200).json(
+        new ApiResponse(200, payments, '')
+    )
+})

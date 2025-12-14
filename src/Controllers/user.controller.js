@@ -5,8 +5,11 @@ import { ApiResponse } from '../Utils/ApiResponse.js';
 import { asyncHandler } from '../Utils/AsyncHandler.js';
 import { uploadOnCloudinary } from '../Utils/Cloudinary.js';
 
-
 dotenv.config({ path: './.env' })
+
+function generateRating() {
+    return +(Math.random() * (5 - 3) + 3).toFixed(1);
+}
 
 async function generateAccessAndRefreshToken(userId) {
     try {
@@ -38,8 +41,9 @@ export const registerUser = asyncHandler(async (req, res) => {
 
     const CloudinaryResponse = await uploadOnCloudinary(req.file.path)
     const Image = CloudinaryResponse.url
+    const rating = generateRating()
     await User.create({
-        name, email, password, image: Image, phoneNumber: phoneNum || 'no number added'
+        name, email, password, image: Image, phoneNumber: phoneNum || 'no number added', rating
     })
     res.status(200).json(
         new ApiResponse(200, { message: 'User registered successfully' }, 'User registered successfully')
@@ -243,31 +247,31 @@ export const UpdateUserRole = asyncHandler(async (req, res) => {
 })
 
 export const editUser = asyncHandler(async (req, res) => {
-    const { userId, name, email, role, password, isFeaturedDecorator } = req.body;
+    const { userId, name, email, role, password, isFeaturedDecorator } = req.body
     const user = await User.findById(userId);
     if (!user) {
-        throw new ApiError(404, 'Unable to find the user');
+        throw new ApiError(404, 'Unable to find the user')
     }
-    if (name) user.name = name;
-    if (email) user.email = email;
-    if (role) user.role = role;
-    if (password) user.password = password;
+    if (name) user.name = name
+    if (email) user.email = email
+    if (role) user.role = role
+    if (password) user.password = password
     if (isFeaturedDecorator !== undefined) {
-        user.isFeaturedDecorator = isFeaturedDecorator === 'true' || isFeaturedDecorator === true;
+        user.isFeaturedDecorator = isFeaturedDecorator === 'true' || isFeaturedDecorator === true
     }
 
     if (req.file) {
-        const CloudinaryImage = await uploadOnCloudinary(req.file.path);
+        const CloudinaryImage = await uploadOnCloudinary(req.file.path)
         if (CloudinaryImage?.url) {
-            user.image = CloudinaryImage.url;
+            user.image = CloudinaryImage.url
         }
     }
-    await user.save({ validateBeforeSave: false });
-    const updatedUser = await User.findById(userId).select("-password -refreshToken");
+    await user.save({ validateBeforeSave: false })
+    const updatedUser = await User.findById(userId).select("-password -refreshToken")
 
     return res
         .status(200)
         .json(
             new ApiResponse(200, updatedUser, "Profile updated successfully")
-        );
-});
+        )
+})
