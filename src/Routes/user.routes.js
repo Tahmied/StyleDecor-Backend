@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { getDecoratorStats, UserUpdateBookingStatus } from '../Controllers/booking.controller.js'
 import { googleAuth, loginCheck, loginUser, logoutUser, profileDetails, registerUser, updateProfile } from '../Controllers/user.controller.js'
-import { findUser } from '../Middlewares/auth.middleware.js'
+import { findUser, ifAdmin } from '../Middlewares/auth.middleware.js'
 import { mediaUpload } from '../Middlewares/multer.middleware.js'
 
 const router = Router()
@@ -18,5 +18,7 @@ router.get('/profile', findUser, profileDetails)
 router.post('/updateBookingStutes', findUser, UserUpdateBookingStatus)
 
 router.get('/getDecorStates', findUser, getDecoratorStats)
+
+router.post('/edit-user', ifAdmin, mediaUpload('/dp').single('image'), updateProfile)
 
 export default router

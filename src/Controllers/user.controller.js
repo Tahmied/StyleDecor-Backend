@@ -241,3 +241,30 @@ export const UpdateUserRole = asyncHandler(async (req,res)=>{
         new ApiResponse(201, updatedUser, 'user role updated')
     )
 })
+
+export const editUser = asyncHandler(async (req, res) => {
+    const {userId} = req.body
+    const user = await User.findById(userId)
+    const { name, password } = req.body
+    if (!user) {
+        throw new ApiError(404, 'unable to find the user')
+    }
+    if (name) {
+        user.name = name
+    }
+    if (password) {
+        user.password = password
+    }
+    if (req.file) {
+        const CloudinaryImage = await uploadOnCloudinary(req.file.path)
+        user.image = CloudinaryImage.url
+    }
+    await user.save({ validateBeforeSave: false })
+    const updatedUser = await User.findById(userId).select("-password -refreshToken");
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, updatedUser, "Profile updated successfully")
+        );
+})
