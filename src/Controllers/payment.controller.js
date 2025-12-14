@@ -153,3 +153,16 @@ export const VerifyPaymentAndBook = asyncHandler(async (req, res) => {
         new ApiResponse(200, response, "Payment verified and complete booking created")
     );
 });
+
+export const myPayments = asyncHandler(async (req, res) => {
+    const user = req.user;
+    if (!user) {
+        throw new ApiError(401, 'User must be logged in'); 
+    }
+    const paymentDetails = await Payment.find({ customerId: user._id })
+        .sort({ createdAt: -1 });
+
+    return res.status(200).json(
+        new ApiResponse(200, paymentDetails, 'Payment details fetched successfully')
+    );
+});
