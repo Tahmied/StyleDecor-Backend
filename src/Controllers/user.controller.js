@@ -39,7 +39,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     const CloudinaryResponse = await uploadOnCloudinary(req.file.path)
     const Image = CloudinaryResponse.url
     await User.create({
-        name, email, password, image: Image, phoneNumber: 'no number added'
+        name, email, password, image: Image, phoneNumber: phoneNum || 'no number added'
     })
     res.status(200).json(
         new ApiResponse(200, { message: 'User registered successfully' }, 'User registered successfully')

@@ -50,7 +50,7 @@ const UserSchema = new mongoose.Schema({
     },
     createdByEmail: {
         type: String,
-        unique: true,
+        unique: false,
         required: false
     },
     phoneNumber: {
