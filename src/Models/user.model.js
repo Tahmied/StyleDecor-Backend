@@ -70,7 +70,12 @@ const UserSchema = new mongoose.Schema({
             date: { type: Date, default: Date.now },
             bookingId: { type: Schema.Types.ObjectId, ref: "Booking" }
         }
-    ]
+    ],
+    isFeaturedDecorator: {
+        type: Boolean,
+        required: false,
+        default: false
+    }
 }, { timestamps: true });
 
 

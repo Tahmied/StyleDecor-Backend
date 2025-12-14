@@ -28,7 +28,7 @@ async function generateAccessAndRefreshToken(userId) {
 }
 
 export const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password } = req.body
+    const { name, email, password, phoneNum } = req.body
     if (!name || !email || !password) {
         throw new ApiError(400, 'Name, email and password are required fields')
     }
@@ -39,7 +39,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     const CloudinaryResponse = await uploadOnCloudinary(req.file.path)
     const Image = CloudinaryResponse.url
     await User.create({
-        name, email, password, image: Image
+        name, email, password, image: Image, phoneNumber: 'no number added'
     })
     res.status(200).json(
         new ApiResponse(200, { message: 'User registered successfully' }, 'User registered successfully')
@@ -202,9 +202,9 @@ export const updateProfile = asyncHandler(async (req, res) => {
 
 })
 
-export const profileDetails = asyncHandler(async (req,res)=>{
+export const profileDetails = asyncHandler(async (req, res) => {
     const user = req.user
-    if(!user){
+    if (!user) {
         throw new ApiError(404, 'user not found')
     }
     return res.status(200).json(
@@ -212,26 +212,26 @@ export const profileDetails = asyncHandler(async (req,res)=>{
     )
 })
 
-export const AllUsers = asyncHandler(async (req,res)=>{
+export const AllUsers = asyncHandler(async (req, res) => {
     const users = await User.find()
-    if(!users){
-        throw new ApiError(500 , 'unable to find users')
+    if (!users) {
+        throw new ApiError(500, 'unable to find users')
     }
 
     return res.status(200).json(
-        new ApiResponse(200, users , 'all users fetched')
+        new ApiResponse(200, users, 'all users fetched')
     )
 })
 
-export const UpdateUserRole = asyncHandler(async (req,res)=>{
-    const {role, userId} = req.body
-    if(!role || !userId){
+export const UpdateUserRole = asyncHandler(async (req, res) => {
+    const { role, userId } = req.body
+    if (!role || !userId) {
         throw new ApiError(400, 'role & user id is a required field')
     }
-    
+
     const user = await User.findById(userId)
-    if(!user){
-        throw new ApiError(500 , 'unable to find the user to update role')
+    if (!user) {
+        throw new ApiError(500, 'unable to find the user to update role')
     }
 
     user.role = role
@@ -243,7 +243,7 @@ export const UpdateUserRole = asyncHandler(async (req,res)=>{
 })
 
 export const editUser = asyncHandler(async (req, res) => {
-    const { userId, name, email, role, password } = req.body;
+    const { userId, name, email, role, password, isFeaturedDecorator } = req.body;
     const user = await User.findById(userId);
     if (!user) {
         throw new ApiError(404, 'Unable to find the user');
@@ -251,10 +251,14 @@ export const editUser = asyncHandler(async (req, res) => {
     if (name) user.name = name;
     if (email) user.email = email;
     if (role) user.role = role;
-    if (password) user.password = password; 
+    if (password) user.password = password;
+    if (isFeaturedDecorator !== undefined) {
+        user.isFeaturedDecorator = isFeaturedDecorator === 'true' || isFeaturedDecorator === true;
+    }
+
     if (req.file) {
         const CloudinaryImage = await uploadOnCloudinary(req.file.path);
-        if(CloudinaryImage?.url) {
+        if (CloudinaryImage?.url) {
             user.image = CloudinaryImage.url;
         }
     }
