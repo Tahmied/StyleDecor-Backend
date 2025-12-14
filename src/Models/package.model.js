@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const packageSchema = new Schema(
     {
-        packageType: {
+        packageName: {
             type: String,
             required: [true, "Package type/name is required"], 
             trim: true
@@ -28,13 +28,13 @@ const packageSchema = new Schema(
             type: [String],
             default: []
         },
-        reversed: {
-            type: Boolean,
-            default: false 
-        },
         description: {
             type: String,
             trim: true 
+        },
+        serviceLink: {
+            type: String,
+            trim:true
         }
     },
     {

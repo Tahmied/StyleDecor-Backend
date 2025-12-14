@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { createPackage, deletePackage, editPackage, getAllPackages } from "../Controllers/package.controller";
-import { findUser, ifAdmin } from "../Middlewares/auth.middleware";
+import { createPackage, deletePackage, editPackage, getAllPackages } from "../Controllers/package.controller.js";
+import { findUser, ifAdmin } from "../Middlewares/auth.middleware.js";
+import { mediaUpload } from "../Middlewares/multer.middleware.js";
 
 const router = Router()
 
@@ -12,8 +13,8 @@ router.post('/create', findUser, ifAdmin, mediaUpload('packages').fields([
     ]), 
     createPackage
 )
-router.delete('/delete', findUser, ifAdmin, deletePackage)
-router.put('/edit', findUser, ifAdmin, mediaUpload('packages').fields([
+router.post('/delete', findUser, ifAdmin, deletePackage)
+router.post('/edit', findUser, ifAdmin, mediaUpload('packages').fields([
         { name: 'mainImage', maxCount: 1 },
         { name: 'videoThumbnail', maxCount: 1 },
         { name: 'thumbnails', maxCount: 10 }
