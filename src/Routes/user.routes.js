@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { getDecoratorStats, UserUpdateBookingStatus } from '../Controllers/booking.controller.js'
-import { googleAuth, loginCheck, loginUser, logoutUser, profileDetails, registerUser, updateProfile } from '../Controllers/user.controller.js'
+import { editUser, googleAuth, loginCheck, loginUser, logoutUser, profileDetails, registerUser, updateProfile } from '../Controllers/user.controller.js'
 import { findUser, ifAdmin } from '../Middlewares/auth.middleware.js'
 import { mediaUpload } from '../Middlewares/multer.middleware.js'
 
@@ -19,6 +19,6 @@ router.post('/updateBookingStutes', findUser, UserUpdateBookingStatus)
 
 router.get('/getDecorStates', findUser, getDecoratorStats)
 
-router.post('/edit-user', ifAdmin, mediaUpload('/dp').single('image'), updateProfile)
+router.post('/edit-user', ifAdmin, mediaUpload('/dp').single('image'), editUser)
 
 export default router

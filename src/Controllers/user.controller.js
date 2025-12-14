@@ -243,23 +243,22 @@ export const UpdateUserRole = asyncHandler(async (req,res)=>{
 })
 
 export const editUser = asyncHandler(async (req, res) => {
-    const {userId} = req.body
-    const user = await User.findById(userId)
-    const { name, password } = req.body
+    const { userId, name, email, role, password } = req.body;
+    const user = await User.findById(userId);
     if (!user) {
-        throw new ApiError(404, 'unable to find the user')
+        throw new ApiError(404, 'Unable to find the user');
     }
-    if (name) {
-        user.name = name
-    }
-    if (password) {
-        user.password = password
-    }
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (role) user.role = role;
+    if (password) user.password = password; 
     if (req.file) {
-        const CloudinaryImage = await uploadOnCloudinary(req.file.path)
-        user.image = CloudinaryImage.url
+        const CloudinaryImage = await uploadOnCloudinary(req.file.path);
+        if(CloudinaryImage?.url) {
+            user.image = CloudinaryImage.url;
+        }
     }
-    await user.save({ validateBeforeSave: false })
+    await user.save({ validateBeforeSave: false });
     const updatedUser = await User.findById(userId).select("-password -refreshToken");
 
     return res
@@ -267,4 +266,4 @@ export const editUser = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(200, updatedUser, "Profile updated successfully")
         );
-})
+});
