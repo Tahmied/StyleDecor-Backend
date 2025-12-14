@@ -245,17 +245,72 @@ export const getTodaysDecorSchedule = asyncHandler(async (req, res) => {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
-    
+
     const bookings = await Booking.find({
         decoratorId: decoratorId,
         eventDate: {
-            $gte: startOfDay, 
-            $lte: endOfDay    
+            $gte: startOfDay,
+            $lte: endOfDay
         },
-        status: { $ne: 'cancelled' } 
-    }).populate("serviceId", "serviceName duration"); 
+        status: { $ne: 'cancelled' }
+    }).populate("serviceId", "serviceName duration");
 
     return res.status(200).json(
         new ApiResponse(200, bookings, "Today's schedule fetched successfully")
+    );
+});
+
+export const updateBookingDetails = asyncHandler(async (req, res) => {
+    const { bookingId, eventDate, eventTime, eventLocation, bookingNotes } = req.body;
+    const userId = req.user._id;
+
+    if (!bookingId) {
+        throw new ApiError(400, "Booking ID is required");
+    }
+
+    const booking = await Booking.findOne({ _id: bookingId, customer: userId });
+
+    if (!booking) {
+        throw new ApiError(404, "Booking not found or you are not authorized to edit it.");
+    }
+
+    if (['completed', 'cancelled'].includes(booking.status.toLowerCase())) {
+        throw new ApiError(400, "Cannot edit a completed or cancelled booking.");
+    }
+
+    if (eventDate) {
+        const newDateObj = new Date(eventDate);
+        const oldDateObj = new Date(booking.eventDate);
+
+        if (newDateObj.getTime() !== oldDateObj.getTime()) {
+
+            const conflict = await Booking.findOne({
+                decoratorId: booking.decoratorId,
+                eventDate: newDateObj,
+                _id: { $ne: booking._id }, 
+                status: { $ne: 'cancelled' }
+            });
+
+            if (conflict) {
+                throw new ApiError(400, "The decorator is not available on this new date. Please choose another date.");
+            }
+
+            await User.findByIdAndUpdate(booking.decoratorId, {
+                $pull: { unavailableDates: oldDateObj },
+                $push: { unavailableDates: newDateObj }
+            });
+
+            booking.eventDate = newDateObj;
+        }
+    }
+
+    if (eventTime) booking.eventTime = eventTime;
+    if (eventLocation) booking.eventLocation = eventLocation;
+    if (bookingNotes) booking.bookingNotes = bookingNotes;
+
+    await booking.save();
+
+    return res.status(200).json(
+        new ApiResponse(200, booking, "Booking details updated successfully")
     );
 });
