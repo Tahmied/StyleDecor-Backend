@@ -99,7 +99,8 @@ export const editService = asyncHandler(async (req, res) => {
         unit,
         serviceCategory,
         features,
-        includes
+        includes,
+        existingImages
     } = req.body;
 
     if (serviceName) service.serviceName = serviceName;
@@ -112,10 +113,37 @@ export const editService = asyncHandler(async (req, res) => {
     if (serviceCategory) service.serviceCategory = serviceCategory;
 
     if (features) {
-        service.features = typeof features === 'string' ? JSON.parse(features) : features;
+        service.features = [features];
     }
     if (includes) {
-        service.includes = typeof includes === 'string' ? JSON.parse(includes) : includes;
+        service.includes = [includes];
+    }
+
+    let retainedImages = [];
+    if (existingImages) {
+        retainedImages = Array.isArray(existingImages) ? existingImages : [existingImages];
+    }
+
+    let newImageUrls = [];
+    if (req.files && req.files.length > 0) {
+        const uploadPromises = req.files.map(async (file) => {
+            try {
+                const response = await uploadOnCloudinary(file.path);
+                return response?.url;
+            } catch (error) {
+                if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+                return null;
+            }
+        });
+
+        const results = await Promise.all(uploadPromises);
+        newImageUrls = results.filter((url) => url !== null);
+    }
+
+    const finalImages = [...retainedImages, ...newImageUrls];
+
+    if (finalImages.length > 0) {
+        service.images = finalImages;
     }
 
     const updatedService = await service.save();
@@ -126,7 +154,6 @@ export const editService = asyncHandler(async (req, res) => {
 });
 
 export const deleteService = asyncHandler(async (req, res) => {
-
     const { serviceId } = req.body;
 
     if (!serviceId) {
@@ -142,12 +169,10 @@ export const deleteService = asyncHandler(async (req, res) => {
     if (service.images && service.images.length > 0) {
         const deletePromises = service.images.map(async (imageUrl) => {
             try {
-
                 const parts = imageUrl.split('/');
                 const fileName = parts[parts.length - 1];
                 const folderName = parts[parts.length - 2];
                 const publicId = `${folderName}/${fileName.split('.')[0]}`;
-
                 await deleteFromCloudinary(publicId);
             } catch (error) {
                 console.log("Failed to delete image from Cloudinary:", imageUrl);
@@ -188,7 +213,7 @@ export const getServiceById = asyncHandler(async (req, res) => {
 
 export const getServicesForHomepage = asyncHandler(async (req, res) => {
     const services = await Service.find()
-        .sort({ createdAt: -1 }) 
+        .sort({ createdAt: -1 })
         .limit(6);
 
     return res.status(200).json(
