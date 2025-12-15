@@ -160,11 +160,12 @@ export const googleAuth = asyncHandler(async (req, res) => {
     const { email, name, image } = req.body
     console.log(email, name, image);
     let user = await User.findOne({ email })
+    const rating = generateRating()
     if (!user) {
         user = await User.create({
             name: name,
             email: email,
-            image: image
+            image: image, rating
         })
     }
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");

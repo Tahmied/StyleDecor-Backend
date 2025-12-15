@@ -180,3 +180,61 @@ export const myDecorPay = asyncHandler(async (req,res)=>{
         new ApiResponse(200, payments, '')
     )
 })
+
+export const getAdminAnalytics = asyncHandler(async (req, res) => {
+    const totalRevenue = await Payment.aggregate([
+        { $match: { status: 'paid' } },
+        { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]);
+
+    const monthlyRevenue = await Payment.aggregate([
+        {
+            $match: {
+                status: 'paid',
+                createdAt: { 
+                    $gte: new Date(new Date().setMonth(new Date().getMonth() - 6)) 
+                }
+            }
+        },
+        {
+            $group: {
+                _id: { $month: "$createdAt" },
+                revenue: { $sum: "$amount" }
+            }
+        },
+        { $sort: { "_id": 1 } } 
+    ]);
+
+    const serviceDemand = await Booking.aggregate([
+        { $match: { status: { $ne: 'cancelled' } } }, 
+        {
+            $group: {
+                _id: "$serviceName", 
+                count: { $sum: 1 }, 
+                totalValue: { $sum: "$servicePrice" } 
+            }
+        },
+        { $sort: { count: -1 } }, 
+        { $limit: 5 }
+    ]);
+
+    const totalBookings = await Booking.countDocuments();
+    const activeDecorators = await User.countDocuments({ role: 'decorator' });
+
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    const formattedMonthlyRevenue = monthlyRevenue.map(item => ({
+        name: monthNames[item._id - 1],
+        revenue: item.revenue
+    }));
+
+    return res.status(200).json(
+        new ApiResponse(200, {
+            totalRevenue: totalRevenue[0]?.total || 0,
+            monthlyRevenue: formattedMonthlyRevenue,
+            serviceDemand: serviceDemand.map(s => ({ name: s._id, value: s.count })),
+            totalBookings,
+            activeDecorators
+        }, "Analytics fetched successfully")
+    );
+});
