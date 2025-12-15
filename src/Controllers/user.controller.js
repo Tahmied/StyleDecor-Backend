@@ -276,3 +276,16 @@ export const editUser = asyncHandler(async (req, res) => {
             new ApiResponse(200, updatedUser, "Profile updated successfully")
         )
 })
+
+export const topDecorators = asyncHandler(async (req, res) => {
+    const decors = await User.find({ 
+        isFeaturedDecorator: true,
+        role: 'decorator' 
+    })
+    .select('-password -__v -createdByEmail -earningsHistory -totalEarnings -unavailableDates -earnings -isVerified -email -phoneNumber') 
+    .sort({ rating: -1 }) 
+    .limit(6); 
+    return res.status(200).json(
+        new ApiResponse(200, decors, 'Top featured decorators fetched successfully')
+    )
+})
