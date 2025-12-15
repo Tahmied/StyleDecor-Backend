@@ -126,7 +126,7 @@ export const editService = asyncHandler(async (req, res) => {
 });
 
 export const deleteService = asyncHandler(async (req, res) => {
-  
+
     const { serviceId } = req.body;
 
     if (!serviceId) {
@@ -142,10 +142,10 @@ export const deleteService = asyncHandler(async (req, res) => {
     if (service.images && service.images.length > 0) {
         const deletePromises = service.images.map(async (imageUrl) => {
             try {
-               
+
                 const parts = imageUrl.split('/');
-                const fileName = parts[parts.length - 1]; 
-                const folderName = parts[parts.length - 2]; 
+                const fileName = parts[parts.length - 1];
+                const folderName = parts[parts.length - 2];
                 const publicId = `${folderName}/${fileName.split('.')[0]}`;
 
                 await deleteFromCloudinary(publicId);
@@ -163,21 +163,21 @@ export const deleteService = asyncHandler(async (req, res) => {
     );
 });
 
-export const allServices = asyncHandler(async (req,res)=>{
+export const allServices = asyncHandler(async (req, res) => {
     const services = await Service.find()
     return res.status(200).json(
         new ApiResponse(200, services, 'all services fetched successfully')
     )
 })
 
-export const getServiceById = asyncHandler(async (req,res)=>{
-    const {serviceId} = req.params
-    if(!serviceId){
+export const getServiceById = asyncHandler(async (req, res) => {
+    const { serviceId } = req.params
+    if (!serviceId) {
         throw new ApiError(404, 'serviceID is a required field')
     }
 
     const service = await Service.findById(serviceId)
-    if(!service){
+    if (!service) {
         throw new ApiError(404, 'service not found')
     }
 
@@ -185,3 +185,13 @@ export const getServiceById = asyncHandler(async (req,res)=>{
         new ApiResponse(200, service, 'service details fetched')
     )
 })
+
+export const getServicesForHomepage = asyncHandler(async (req, res) => {
+    const services = await Service.find()
+        .sort({ createdAt: -1 }) 
+        .limit(6);
+
+    return res.status(200).json(
+        new ApiResponse(200, services, 'Homepage services fetched successfully')
+    );
+});

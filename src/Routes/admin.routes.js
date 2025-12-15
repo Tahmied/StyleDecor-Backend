@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addService, allServices, deleteService, editService, getServiceById } from "../Controllers/service.controller.js";
+import { addService, allServices, deleteService, editService, getServiceById, getServicesForHomepage } from "../Controllers/service.controller.js";
 import { AllUsers, UpdateUserRole } from "../Controllers/user.controller.js";
 import { ifAdmin } from "../Middlewares/auth.middleware.js";
 import { mediaUpload } from "../Middlewares/multer.middleware.js";
@@ -14,5 +14,6 @@ router.get(`/service/:serviceId`, getServiceById)
 
 router.get('/users', ifAdmin, AllUsers)
 router.post('/UpdateUserRole', ifAdmin, UpdateUserRole)
+router.get('/homepage-services', getServicesForHomepage)
 
 export default router
