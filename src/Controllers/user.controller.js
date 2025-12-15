@@ -289,3 +289,11 @@ export const topDecorators = asyncHandler(async (req, res) => {
         new ApiResponse(200, decors, 'Top featured decorators fetched successfully')
     )
 })
+
+export const getCurrentUser = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id).select("-password"); 
+    
+    return res.status(200).json(
+        new ApiResponse(200, user, "Current user fetched successfully")
+    );
+})
