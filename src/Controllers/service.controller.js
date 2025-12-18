@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { Service } from "../Models/service.model.js";
-import { ApiError } from "../Utils/apiError.js";
+import { ApiError } from "../Utils/ApiError.js";
 import { ApiResponse } from '../Utils/ApiResponse.js';
 import { asyncHandler } from "../Utils/AsyncHandler.js";
 import { deleteFromCloudinary, uploadOnCloudinary } from '../Utils/Cloudinary.js';

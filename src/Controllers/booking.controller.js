@@ -1,7 +1,7 @@
 import { Booking } from "../Models/booking.model.js";
 import { Service } from "../Models/service.model.js";
 import { User } from "../Models/user.model.js";
-import { ApiError } from "../Utils/apiError.js";
+import { ApiError } from "../Utils/ApiError.js";
 import { ApiResponse } from "../Utils/ApiResponse.js";
 import { asyncHandler } from "../Utils/AsyncHandler.js";
 
