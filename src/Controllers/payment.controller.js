@@ -6,7 +6,7 @@ import { User } from "../Models/user.model.js";
 import { ApiError } from "../Utils/ApiError.js";
 import { ApiResponse } from "../Utils/ApiResponse.js";
 import { asyncHandler } from "../Utils/AsyncHandler.js";
-
+import { sendEmail } from "../Utils/Email.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -146,6 +146,39 @@ export const VerifyPaymentAndBook = asyncHandler(async (req, res) => {
         },
         { new: true }
     );
+    try {
+        if (customer.email) {
+            const emailSubject = `Booking Confirmed: ${service.serviceName}`;
+            const emailContent = `
+                Hello ${customer.name},
+                
+                Your payment was successful and admin will assign decorator team for you! 🎉
+                
+                Booking Details:
+                ----------------
+                Service: ${service.serviceName}
+                Decorator: ${decorator.name}
+                Date: ${new Date(eventDate).toDateString()}
+                Time: ${eventTime}
+                Location: ${eventLocation || 'Online/TBD'}
+                Total Paid: ৳${session.amount_total / 100}
+
+                Soon the admin will assign the team and you will receive the confirmation email when admin assigns a team.
+                
+                Thank you for choosing StyleDecor!
+            `;
+
+            await sendEmail({
+                to: customer.email,
+                subject: emailSubject,
+                text: emailContent
+            });
+            console.log(`Confirmation email sent to ${customer.email}`);
+        }
+    } catch (emailError) {
+        console.error("Failed to send confirmation email:", emailError);
+    }
+
     const response = {
         newBooking: newBooking,
         newPayment: newPayment
@@ -158,7 +191,7 @@ export const VerifyPaymentAndBook = asyncHandler(async (req, res) => {
 export const myPayments = asyncHandler(async (req, res) => {
     const user = req.user;
     if (!user) {
-        throw new ApiError(401, 'User must be logged in'); 
+        throw new ApiError(401, 'User must be logged in');
     }
     const paymentDetails = await Payment.find({ customerId: user._id })
         .sort({ createdAt: -1 });
@@ -168,14 +201,14 @@ export const myPayments = asyncHandler(async (req, res) => {
     );
 });
 
-export const myDecorPay = asyncHandler(async (req,res)=>{
+export const myDecorPay = asyncHandler(async (req, res) => {
     const decorator = req.user
-    if(!decorator){
-        throw new ApiError(400 , 'decorator must be logged in')
+    if (!decorator) {
+        throw new ApiError(400, 'decorator must be logged in')
     }
 
-    const payments = await Payment.find({decoratorId:decorator._id}).sort({createdAt: -1})
-    
+    const payments = await Payment.find({ decoratorId: decorator._id }).sort({ createdAt: -1 })
+
     return res.status(200).json(
         new ApiResponse(200, payments, '')
     )
@@ -191,8 +224,8 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
         {
             $match: {
                 status: 'paid',
-                createdAt: { 
-                    $gte: new Date(new Date().setMonth(new Date().getMonth() - 6)) 
+                createdAt: {
+                    $gte: new Date(new Date().setMonth(new Date().getMonth() - 6))
                 }
             }
         },
@@ -202,19 +235,19 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
                 revenue: { $sum: "$amount" }
             }
         },
-        { $sort: { "_id": 1 } } 
+        { $sort: { "_id": 1 } }
     ]);
 
     const serviceDemand = await Booking.aggregate([
-        { $match: { status: { $ne: 'cancelled' } } }, 
+        { $match: { status: { $ne: 'cancelled' } } },
         {
             $group: {
-                _id: "$serviceName", 
-                count: { $sum: 1 }, 
-                totalValue: { $sum: "$servicePrice" } 
+                _id: "$serviceName",
+                count: { $sum: 1 },
+                totalValue: { $sum: "$servicePrice" }
             }
         },
-        { $sort: { count: -1 } }, 
+        { $sort: { count: -1 } },
         { $limit: 5 }
     ]);
 
@@ -222,7 +255,7 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
     const activeDecorators = await User.countDocuments({ role: 'decorator' });
 
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    
+
     const formattedMonthlyRevenue = monthlyRevenue.map(item => ({
         name: monthNames[item._id - 1],
         revenue: item.revenue
