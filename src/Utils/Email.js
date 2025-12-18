@@ -1,5 +1,5 @@
-import dotenv from 'dotenv'
-import nodemailer from 'nodemailer'
+import dotenv from 'dotenv';
+import nodemailer from 'nodemailer';
 
 dotenv.config({path :'./.env'})
 
@@ -14,8 +14,9 @@ const transporter = nodemailer.createTransport({
 })
 
 async function sendEmail({to, subject, text, html}) {
+    console.log('sending email in email.js');
     const msg = {
-        from : `"Royal Kitchen" <${process.env.SMTP_USER}>`,
+        from : `"StyleDecor" <${process.env.SMTP_USER}>`,
         to,
         subject,
         text,
@@ -24,4 +25,5 @@ async function sendEmail({to, subject, text, html}) {
     return transporter.sendMail(msg)
 }
 
-export { sendEmail }
+export { sendEmail };
+

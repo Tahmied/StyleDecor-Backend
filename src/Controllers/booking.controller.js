@@ -4,6 +4,7 @@ import { User } from "../Models/user.model.js";
 import { ApiError } from "../Utils/ApiError.js";
 import { ApiResponse } from "../Utils/ApiResponse.js";
 import { asyncHandler } from "../Utils/AsyncHandler.js";
+import { sendEmail } from "../Utils/Email.js";
 
 export const BookService = asyncHandler(async (req, res) => {
     const { decoratorId, serviceId, eventDate, eventTime, eventLocation, bookingNotes, serviceCategory } = req.body;
@@ -104,6 +105,7 @@ export const updateBookingStatus = asyncHandler(async (req, res) => {
     }
 
     if (status === 'Assigned') {
+        const customer = await User.findById(booking.customer)
         const updatedDecorator = await User.findByIdAndUpdate(
             booking.decoratorId,
             {
@@ -123,6 +125,18 @@ export const updateBookingStatus = asyncHandler(async (req, res) => {
             },
             { new: true }
         )
+        if (customer?.email) {
+            console.log('sending email');
+            try {
+                await sendEmail({
+                    to: customer.email,
+                    subject: 'Service Booking Confirmed! 🎉',
+                    text: `Hello ${customer.name},\n\nYour service "${booking.serviceName}" has been successfully assigned to our decorator team. We are getting everything ready for your event on ${new Date(booking.eventDate).toDateString()}.\n\nThank you for choosing StyleDecor!`
+                });
+            } catch (emailError) {
+                console.error("Failed to send email:", emailError);
+            }
+        }
     };
 
     booking.status = status
@@ -139,7 +153,6 @@ export const updateBookingStatus = asyncHandler(async (req, res) => {
     return res.status(200).json(
         new ApiResponse(200, booking, `Booking status updated to ${status}`)
     );
-
 })
 
 export const getDecoratorStats = asyncHandler(async (req, res) => {
