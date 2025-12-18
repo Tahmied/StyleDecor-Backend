@@ -31,7 +31,7 @@ async function generateAccessAndRefreshToken(userId) {
 }
 
 export const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password, phoneNum } = req.body
+    const { name, email, password, role, specialty, phoneNum } = req.body
     if (!name || !email || !password) {
         throw new ApiError(400, 'Name, email and password are required fields')
     }
@@ -43,7 +43,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     const Image = CloudinaryResponse.url
     const rating = generateRating()
     await User.create({
-        name, email, password, image: Image, phoneNumber: phoneNum || 'no number added', rating
+        name, email, password, image: Image, phoneNumber: phoneNum || 'no number added', rating, role: role || 'user', specialty: specialty || 'All'
     })
     res.status(200).json(
         new ApiResponse(200, { message: 'User registered successfully' }, 'User registered successfully')
@@ -248,7 +248,7 @@ export const UpdateUserRole = asyncHandler(async (req, res) => {
 })
 
 export const editUser = asyncHandler(async (req, res) => {
-    const { userId, name, email, role, password, isFeaturedDecorator } = req.body
+    const { userId, name, email, role, password, isFeaturedDecorator, specialty } = req.body
     const user = await User.findById(userId);
     if (!user) {
         throw new ApiError(404, 'Unable to find the user')
@@ -257,6 +257,7 @@ export const editUser = asyncHandler(async (req, res) => {
     if (email) user.email = email
     if (role) user.role = role
     if (password) user.password = password
+    if (specialty) user.specialty = specialty;
     if (isFeaturedDecorator !== undefined) {
         user.isFeaturedDecorator = isFeaturedDecorator === 'true' || isFeaturedDecorator === true
     }

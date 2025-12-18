@@ -59,7 +59,7 @@ export const BookService = asyncHandler(async (req, res) => {
 });
 
 export const getAvailableDecorators = asyncHandler(async (req, res) => {
-    const { date } = req.body;
+    const { date, category } = req.body;
 
     if (!date) {
         throw new ApiError(400, "Date is required (YYYY-MM-DD)");
@@ -71,10 +71,16 @@ export const getAvailableDecorators = asyncHandler(async (req, res) => {
         paymentStatus: 'paid'
     }).distinct('decoratorId');
 
-    const availableDecorators = await User.find({
+    const query = {
         role: 'decorator',
-        _id: { $nin: bookedDecorators }
-    }).select('-password');
+        _id: { $nin: bookedDecorators },
+        unavailableDates: { $ne: date }
+    };
+    if (category) {
+        query.specialty = { $in: [category, 'All'] };
+    }
+
+    const availableDecorators = await User.find(query).select('-password');
 
     return res.status(200).json(
         new ApiResponse(200, availableDecorators, 'Available decorators fetched successfully')
@@ -287,7 +293,7 @@ export const updateBookingDetails = asyncHandler(async (req, res) => {
             const conflict = await Booking.findOne({
                 decoratorId: booking.decoratorId,
                 eventDate: newDateObj,
-                _id: { $ne: booking._id }, 
+                _id: { $ne: booking._id },
                 status: { $ne: 'cancelled' }
             });
 

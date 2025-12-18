@@ -26,11 +26,11 @@ const ServiceSchema = new Schema({
         default: "On-site"
     },
     features: {
-        type: [String], 
+        type: [String],
         default: []
     },
     includes: {
-        type: [String], 
+        type: [String],
         default: []
     },
     cost: {
@@ -45,7 +45,8 @@ const ServiceSchema = new Schema({
     serviceCategory: {
         type: String,
         required: [true, "Category is required"],
-        trim: true
+        trim: true,
+        enum: ['Wedding', 'Birthday', 'Corporate', 'Home', 'Seasonal']
     },
     images: {
         type: [String],

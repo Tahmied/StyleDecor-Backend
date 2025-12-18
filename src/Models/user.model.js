@@ -29,7 +29,7 @@ const UserSchema = new mongoose.Schema({
     },
     specialty: {
         type: String,
-        enum: ['Wedding', 'Birthday', 'Corporate', 'Home', 'All'],
+        enum: ['Wedding', 'Birthday', 'Corporate', 'Home', 'Seasonal', 'All'],
         default: 'All'
     },
     rating: {
