@@ -31,7 +31,7 @@ async function generateAccessAndRefreshToken(userId) {
 }
 
 export const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password, role, specialty, phoneNum } = req.body
+    const { name, email, password, role, specialty, phoneNum, isFeaturedDecorator } = req.body
     if (!name || !email || !password) {
         throw new ApiError(400, 'Name, email and password are required fields')
     }
@@ -43,7 +43,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     const Image = CloudinaryResponse.url
     const rating = generateRating()
     await User.create({
-        name, email, password, image: Image, phoneNumber: phoneNum || 'no number added', rating, role: role || 'user', specialty: specialty || 'All'
+        name, email, password, image: Image, phoneNumber: phoneNum || 'no number added', rating, role: role || 'user', specialty: specialty || 'All', isFeaturedDecorator: isFeaturedDecorator === 'true' || isFeaturedDecorator === true
     })
     res.status(200).json(
         new ApiResponse(200, { message: 'User registered successfully' }, 'User registered successfully')
