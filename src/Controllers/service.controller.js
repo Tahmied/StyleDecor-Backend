@@ -1,13 +1,13 @@
-import fs from 'fs';
-import { Service } from "../Models/service.model.js";
-import { ApiError } from "../Utils/ApiError.js";
-import { ApiResponse } from '../Utils/ApiResponse.js';
-import { asyncHandler } from "../Utils/AsyncHandler.js";
-import { deleteFromCloudinary, uploadOnCloudinary } from '../Utils/Cloudinary.js';
+import fs from 'fs'
+import { Service } from "../Models/service.model.js"
+import { ApiError } from "../Utils/ApiError.js"
+import { ApiResponse } from '../Utils/ApiResponse.js'
+import { asyncHandler } from "../Utils/AsyncHandler.js"
+import { deleteFromCloudinary, uploadOnCloudinary } from '../Utils/Cloudinary.js'
 
 export const addService = asyncHandler(async (req, res) => {
     const admin = req.admin
-    console.log(admin);
+    console.log(admin)
 
     const {
         serviceName,
@@ -18,38 +18,38 @@ export const addService = asyncHandler(async (req, res) => {
         cost,
         unit,
         serviceCategory, features, includes
-    } = req.body;
+    } = req.body
 
     if (
         [serviceName, description, longDescription, duration, cost, unit, serviceCategory].some((field) => field?.trim() === "")
     ) {
-        throw new ApiError(400, "All fields are required");
+        throw new ApiError(400, "All fields are required")
     }
 
 
-    let imageUrls = [];
+    let imageUrls = []
 
     if (req.files && req.files.length > 0) {
         const uploadPromises = req.files.map(async (file) => {
             try {
-                const response = await uploadOnCloudinary(file.path);
-                return response?.url;
+                const response = await uploadOnCloudinary(file.path)
+                return response?.url
             } catch (error) {
-                console.log(error);
-                if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-                return null;
+                console.log(error)
+                if (fs.existsSync(file.path)) fs.unlinkSync(file.path)
+                return null
             }
-        });
+        })
 
-        const results = await Promise.all(uploadPromises);
-        imageUrls = results.filter((url) => url !== null);
+        const results = await Promise.all(uploadPromises)
+        imageUrls = results.filter((url) => url !== null)
     }
     if (imageUrls.length === 0) {
-        throw new ApiError(400, "At least one image is required");
+        throw new ApiError(400, "At least one image is required")
     }
 
     const rating = parseFloat((Math.random() * 2 + 3).toFixed(1))
-    const reviews = Math.floor(Math.random() * (500 - 200 + 1)) + 200;
+    const reviews = Math.floor(Math.random() * (500 - 200 + 1)) + 200
 
     const service = await Service.create({
         serviceName,
@@ -65,28 +65,28 @@ export const addService = asyncHandler(async (req, res) => {
         images: imageUrls, createdByEmail: admin.email,
         rating: rating,
         reviews: reviews
-    });
+    })
 
     if (!service) {
-        throw new ApiError(500, "Something went wrong while creating the service");
+        throw new ApiError(500, "Something went wrong while creating the service")
     }
 
     return res.status(201).json(
         new ApiResponse(200, service, "Service created successfully")
-    );
-});
+    )
+})
 
 export const editService = asyncHandler(async (req, res) => {
-    const { serviceId } = req.body;
+    const { serviceId } = req.body
 
     if (!serviceId) {
-        throw new ApiError(400, 'Service ID is required');
+        throw new ApiError(400, 'Service ID is required')
     }
 
-    const service = await Service.findById(serviceId);
+    const service = await Service.findById(serviceId)
 
     if (!service) {
-        throw new ApiError(404, "Service not found");
+        throw new ApiError(404, "Service not found")
     }
 
     const {
@@ -101,97 +101,140 @@ export const editService = asyncHandler(async (req, res) => {
         features,
         includes,
         existingImages
-    } = req.body;
+    } = req.body
 
-    if (serviceName) service.serviceName = serviceName;
-    if (description) service.description = description;
-    if (longDescription) service.longDescription = longDescription;
-    if (duration) service.duration = duration;
-    if (serviceType) service.serviceType = serviceType;
-    if (cost) service.cost = cost;
-    if (unit) service.unit = unit;
-    if (serviceCategory) service.serviceCategory = serviceCategory;
+    if (serviceName) service.serviceName = serviceName
+    if (description) service.description = description
+    if (longDescription) service.longDescription = longDescription
+    if (duration) service.duration = duration
+    if (serviceType) service.serviceType = serviceType
+    if (cost) service.cost = cost
+    if (unit) service.unit = unit
+    if (serviceCategory) service.serviceCategory = serviceCategory
 
     if (features) {
-        service.features = [features];
+        service.features = [features]
     }
     if (includes) {
-        service.includes = [includes];
+        service.includes = [includes]
     }
 
-    let retainedImages = [];
+    let retainedImages = []
     if (existingImages) {
-        retainedImages = Array.isArray(existingImages) ? existingImages : [existingImages];
+        retainedImages = Array.isArray(existingImages) ? existingImages : [existingImages]
     }
 
-    let newImageUrls = [];
+    let newImageUrls = []
     if (req.files && req.files.length > 0) {
         const uploadPromises = req.files.map(async (file) => {
             try {
-                const response = await uploadOnCloudinary(file.path);
-                return response?.url;
+                const response = await uploadOnCloudinary(file.path)
+                return response?.url
             } catch (error) {
-                if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-                return null;
+                if (fs.existsSync(file.path)) fs.unlinkSync(file.path)
+                return null
             }
-        });
+        })
 
-        const results = await Promise.all(uploadPromises);
-        newImageUrls = results.filter((url) => url !== null);
+        const results = await Promise.all(uploadPromises)
+        newImageUrls = results.filter((url) => url !== null)
     }
 
-    const finalImages = [...retainedImages, ...newImageUrls];
+    const finalImages = [...retainedImages, ...newImageUrls]
 
     if (finalImages.length > 0) {
-        service.images = finalImages;
+        service.images = finalImages
     }
 
-    const updatedService = await service.save();
+    const updatedService = await service.save()
 
     return res.status(200).json(
         new ApiResponse(200, updatedService, 'Service updated successfully')
-    );
-});
+    )
+})
 
 export const deleteService = asyncHandler(async (req, res) => {
-    const { serviceId } = req.body;
+    const { serviceId } = req.body
 
     if (!serviceId) {
-        throw new ApiError(400, "Service ID is required");
+        throw new ApiError(400, "Service ID is required")
     }
 
-    const service = await Service.findById(serviceId);
+    const service = await Service.findById(serviceId)
 
     if (!service) {
-        throw new ApiError(404, "Service not found");
+        throw new ApiError(404, "Service not found")
     }
 
     if (service.images && service.images.length > 0) {
         const deletePromises = service.images.map(async (imageUrl) => {
             try {
-                const parts = imageUrl.split('/');
-                const fileName = parts[parts.length - 1];
-                const folderName = parts[parts.length - 2];
-                const publicId = `${folderName}/${fileName.split('.')[0]}`;
-                await deleteFromCloudinary(publicId);
+                const parts = imageUrl.split('/')
+                const fileName = parts[parts.length - 1]
+                const folderName = parts[parts.length - 2]
+                const publicId = `${folderName}/${fileName.split('.')[0]}`
+                await deleteFromCloudinary(publicId)
             } catch (error) {
-                console.log("Failed to delete image from Cloudinary:", imageUrl);
+                console.log("Failed to delete image from Cloudinary:", imageUrl)
             }
-        });
-        await Promise.all(deletePromises);
+        })
+        await Promise.all(deletePromises)
     }
 
-    await Service.findByIdAndDelete(serviceId);
+    await Service.findByIdAndDelete(serviceId)
 
     return res.status(200).json(
         new ApiResponse(200, {}, "Service deleted successfully")
-    );
-});
+    )
+})
 
 export const allServices = asyncHandler(async (req, res) => {
-    const services = await Service.find()
+    const { page = 1, limit = 9, search, category, minPrice, maxPrice, sort } = req.query
+
+    const query = {}
+
+    if (search) {
+        query.$or = [
+            { serviceName: { $regex: search, $options: 'i' } },
+            { description: { $regex: search, $options: 'i' } }
+        ]
+    }
+
+    if (category && category !== 'all') {
+        query.serviceCategory = { $regex: new RegExp(`^${category}$`, 'i') }
+    }
+
+    if (minPrice || maxPrice) {
+        query.cost = {}
+        if (minPrice) query.cost.$gte = Number(minPrice)
+        if (maxPrice) query.cost.$lte = Number(maxPrice)
+    }
+
+    let sortOption = { createdAt: -1 } 
+    if (sort === 'price-asc') sortOption = { cost: 1 }
+    if (sort === 'price-desc') sortOption = { cost: -1 }
+    if (sort === 'rating') sortOption = { rating: -1 }
+
+    const pageNum = Number(page)
+    const limitNum = Number(limit)
+    const skip = (pageNum - 1) * limitNum
+
+    const services = await Service.find(query)
+        .sort(sortOption)
+        .skip(skip)
+        .limit(limitNum)
+
+    const total = await Service.countDocuments(query)
+
     return res.status(200).json(
-        new ApiResponse(200, services, 'all services fetched successfully')
+        new ApiResponse(200, {
+            services,
+            pagination: {
+                total,
+                page: pageNum,
+                pages: Math.ceil(total / limitNum)
+            }
+        }, 'Services fetched successfully')
     )
 })
 
@@ -214,9 +257,9 @@ export const getServiceById = asyncHandler(async (req, res) => {
 export const getServicesForHomepage = asyncHandler(async (req, res) => {
     const services = await Service.find()
         .sort({ createdAt: -1 })
-        .limit(6);
+        .limit(6)
 
     return res.status(200).json(
         new ApiResponse(200, services, 'Homepage services fetched successfully')
-    );
-});
+    )
+})
